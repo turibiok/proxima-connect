@@ -4,6 +4,7 @@ Back-office de PROXIMA CONNECT. Il gère le vivier d'intervenants, les clients, 
 
 - **Cahier des charges** : `PROXIMA_CONNECT_Cahier_des_Charges_IT.pdf`
 - **Note de cadrage technique** : [docs/note-de-cadrage.md](docs/note-de-cadrage.md)
+- **Mise en ligne** : [docs/mise-en-ligne.md](docs/mise-en-ligne.md)
 
 ## État
 
@@ -40,7 +41,9 @@ npm run dev                  # http://localhost:3100
 | `npm test` | Tests des règles métier : téléphone, âge, statuts, recherche |
 | `npm run typecheck` | Vérification des types TypeScript |
 | `npm run migrer` | Applique les nouvelles migrations de `db/migrations` |
-| `npm run semer` | Crée le premier administrateur |
+| `npm run semer` | Base de développement : administrateur et profils fictifs (`-- --demo`) |
+| `npm run creer-admin` | Crée un administrateur avec un mot de passe provisoire |
+| `npm run migrer:prod`, `npm run creer-admin:prod` | Mêmes commandes sur la base de production (`.env.production.local`) |
 
 ## Organisation
 

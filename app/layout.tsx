@@ -36,10 +36,10 @@ export default async function Racine({ children }: { children: React.ReactNode }
                   <Menu entrees={menu} />
                 </div>
                 <div className="ml-auto flex items-center gap-3 sm:ml-0">
-                  <div className="text-right text-xs leading-tight">
+                  <Link href="/compte/mot-de-passe" title="Changer de mot de passe" className="text-right text-xs leading-tight hover:underline">
                     <div className="font-semibold">{ctx.utilisateur.nom_complet}</div>
                     <div className="text-encre-douce">{ROLES[ctx.utilisateur.role].libelle}</div>
-                  </div>
+                  </Link>
                   <form action={seDeconnecter}>
                     <button className="btn px-3 py-1.5 text-xs">Déconnexion</button>
                   </form>

@@ -14,6 +14,8 @@ export interface Utilisateur {
   email: string;
   nom_complet: string;
   role: Role;
+  /** Mot de passe provisoire non encore remplace : aucun droit tant qu'il ne l'est pas. */
+  mdp_provisoire: boolean;
 }
 
 export interface Contexte {
@@ -31,18 +33,23 @@ export const contexte = cache(async (): Promise<Contexte | null> => {
   const jeton = (await cookies()).get(COOKIE_SESSION)?.value;
   if (!jeton) return null;
   const u = await une<Utilisateur>(
-    `SELECT u.id, u.email, u.nom_complet, u.role
+    `SELECT u.id, u.email, u.nom_complet, u.role, u.mdp_provisoire
        FROM session s JOIN utilisateur u ON u.id = s.utilisateur_id
       WHERE s.jeton_hash = $1 AND s.expire_le > now() AND u.actif`,
     [empreinte(jeton)],
   );
   if (!u) return null;
-  return { utilisateur: u, peut: (d) => peut(u.role, d) };
+  // Un mot de passe provisoire a ete vu par quelqu'un d'autre : tant qu'il
+  // n'est pas remplace, le compte n'a aucun droit (pages, actions, fichiers).
+  return { utilisateur: u, peut: (d) => !u.mdp_provisoire && peut(u.role, d) };
 });
 
 export async function ouvrirSession(utilisateurId: string) {
   const jeton = randomBytes(32).toString('base64url');
   const { ip, userAgent } = await origine();
+  // les sessions expirees du compte sont nettoyees a chaque connexion :
+  // la table ne grossit pas indefiniment, sans tache planifiee a heberger
+  await requete('DELETE FROM session WHERE utilisateur_id = $1 AND expire_le < now()', [utilisateurId]);
   await requete(
     `INSERT INTO session (utilisateur_id, jeton_hash, expire_le, ip, user_agent)
      VALUES ($1, $2, now() + make_interval(hours => $3), $4, $5)`,
@@ -56,6 +63,12 @@ export async function ouvrirSession(utilisateurId: string) {
     path: '/',
     maxAge: DUREE_HEURES * 3600,
   });
+}
+
+/** Empreinte du jeton de la session courante, pour fermer toutes les AUTRES sessions d'un compte. */
+export async function jetonCourant(): Promise<string | null> {
+  const jeton = (await cookies()).get(COOKIE_SESSION)?.value;
+  return jeton ? empreinte(jeton) : null;
 }
 
 export async function fermerSession() {
@@ -80,6 +93,7 @@ export async function origine(): Promise<{ ip: string | null; userAgent: string 
 export async function exiger(droit?: Droit): Promise<Contexte> {
   const ctx = await contexte();
   if (!ctx) redirect('/connexion');
+  if (ctx.utilisateur.mdp_provisoire) redirect('/compte/mot-de-passe');
   if (droit && !ctx.peut(droit)) redirect('/acces-refuse');
   return ctx;
 }
@@ -88,6 +102,7 @@ export async function exiger(droit?: Droit): Promise<Contexte> {
 export async function exigerAction(droit: Droit): Promise<Contexte> {
   const ctx = await contexte();
   if (!ctx) throw new Error('Session expirée : reconnectez-vous.');
+  if (ctx.utilisateur.mdp_provisoire) throw new Error('Remplacez d’abord votre mot de passe provisoire.');
   if (!ctx.peut(droit)) throw new Error('Vous n’avez pas le droit de faire cette action.');
   return ctx;
 }

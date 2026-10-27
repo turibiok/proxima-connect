@@ -30,12 +30,32 @@ export async function creerCompte(_: EtatCompte, f: FormData): Promise<EtatCompt
   const motDePasse = provisoire();
   const { hash, sel } = hacher(motDePasse);
   const u = await une<{ id: string }>(
-    'INSERT INTO utilisateur (email, nom_complet, role, mot_de_passe, sel) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+    'INSERT INTO utilisateur (email, nom_complet, role, mot_de_passe, sel, mdp_provisoire) VALUES ($1, $2, $3, $4, $5, true) RETURNING id',
     [email, nom, role, hash, sel],
   );
   await consigner({ utilisateurId: ctx.utilisateur.id, action: 'compte_creation', entite: 'utilisateur', entiteId: u!.id, details: { email, role } });
   revalidatePath('/comptes');
   return { cree: { email, motDePasse } };
+}
+
+/**
+ * Mot de passe oublie : l'administrateur genere un nouveau provisoire, a
+ * transmettre de vive voix. Les sessions du compte sont fermees.
+ */
+export async function reinitialiserMotDePasse(id: string): Promise<{ email: string; motDePasse: string } | { erreur: string }> {
+  const ctx = await exigerAction('compte:gerer');
+  if (id === ctx.utilisateur.id) return { erreur: 'Changez votre propre mot de passe depuis votre compte.' };
+  const motDePasse = provisoire();
+  const { hash, sel } = hacher(motDePasse);
+  const u = await une<{ email: string }>(
+    'UPDATE utilisateur SET mot_de_passe = $2, sel = $3, mdp_provisoire = true WHERE id = $1 RETURNING email',
+    [id, hash, sel],
+  );
+  if (!u) return { erreur: 'Compte introuvable.' };
+  await requete('DELETE FROM session WHERE utilisateur_id = $1', [id]);
+  await consigner({ utilisateurId: ctx.utilisateur.id, action: 'compte_reinitialisation', entite: 'utilisateur', entiteId: id, details: { email: u.email } });
+  revalidatePath('/comptes');
+  return { email: u.email, motDePasse };
 }
 
 export async function basculerCompte(id: string, actif: boolean) {

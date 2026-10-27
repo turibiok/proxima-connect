@@ -24,6 +24,8 @@ export async function consigner(
 export const LIBELLES_ACTIONS: Record<string, string> = {
   connexion: 'Connexion',
   connexion_echec: 'Échec de connexion',
+  connexion_bloquee: 'Connexion bloquée (trop de tentatives)',
+  mot_de_passe: 'Mot de passe changé',
   inscription: 'Inscription (formulaire public)',
   creation_interne: 'Profil saisi par l’équipe',
   modification: 'Modification',
@@ -53,5 +55,6 @@ export const LIBELLES_ACTIONS: Record<string, string> = {
   incident_resolution: 'Incident résolu',
   fichier_telechargement: 'Fichier téléchargé',
   compte_creation: 'Création de compte',
+  compte_reinitialisation: 'Mot de passe réinitialisé par un administrateur',
   compte_etat: 'Activation / désactivation de compte',
 };

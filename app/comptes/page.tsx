@@ -1,7 +1,7 @@
 import { exiger } from '@/lib/auth/session';
 import { requete } from '@/lib/db';
 import { ROLES, type Role } from '@/lib/auth/roles';
-import { BasculeCompte, NouveauCompte } from './Formulaires';
+import { ActionsCompte, NouveauCompte } from './Formulaires';
 
 export const metadata = { title: 'Comptes' };
 
@@ -39,7 +39,7 @@ export default async function Comptes() {
                       : 'Jamais'}
                   </td>
                   <td className="px-4 py-2.5 text-right">
-                    {c.id !== ctx.utilisateur.id && <BasculeCompte id={c.id} actif={c.actif} />}
+                    {c.id !== ctx.utilisateur.id && <ActionsCompte id={c.id} actif={c.actif} />}
                   </td>
                 </tr>
               ))}

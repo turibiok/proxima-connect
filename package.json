@@ -1,0 +1,35 @@
+{
+  "name": "proxima-connect",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Back-office PROXIMA CONNECT - vivier d'intervenants, clients, missions, preuves terrain",
+  "scripts": {
+    "dev": "next dev -p 3100",
+    "build": "next build",
+    "start": "next start -p 3100",
+    "test": "node --test tests/*.test.mjs",
+    "typecheck": "tsc --noEmit",
+    "migrer": "node --env-file-if-exists=.env.local scripts/migrer.mjs",
+    "semer": "node --env-file-if-exists=.env.local scripts/semer.mjs"
+  },
+  "engines": {
+    "node": ">=22.6"
+  },
+  "dependencies": {
+    "next": "15.5.4",
+    "pg": "^8.16.3",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.13",
+    "@types/node": "^22.10.0",
+    "@types/pg": "^8.15.5",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "tailwindcss": "^4.1.13",
+    "typescript": "^5.7.0"
+  }
+}

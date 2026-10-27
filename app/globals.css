@@ -1,0 +1,70 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-encre: #14213d;
+  --color-encre-douce: #55627a;
+  --color-papier: #f6f7fb;
+  --color-trait: #dfe3ec;
+  --color-marque: #1d4ed8;
+  --color-marque-fonce: #1e3a8a;
+  --color-marque-pale: #e8eefc;
+  --color-accent: #f59e0b;
+  --color-ok: #067647;
+  --color-ok-pale: #ecfdf3;
+  --color-alerte: #b54708;
+  --color-alerte-pale: #fffaeb;
+  --color-danger: #b42318;
+  --color-danger-pale: #fef3f2;
+  --font-sans: ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+  background: var(--color-papier);
+  color: var(--color-encre);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+
+@layer components {
+  .carte {
+    @apply rounded-xl border border-trait bg-white;
+  }
+  .champ {
+    @apply w-full rounded-lg border border-trait bg-white px-3 py-2 text-[15px] outline-none focus:border-marque focus:ring-2 focus:ring-marque/20;
+  }
+  .etiquette {
+    @apply mb-1 block text-sm font-medium;
+  }
+  .aide {
+    @apply mt-1 text-xs text-encre-douce;
+  }
+  .erreur {
+    @apply mt-1 text-xs font-medium text-danger;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-trait bg-white px-4 py-2 text-sm font-semibold hover:bg-papier disabled:opacity-50;
+  }
+  .btn-primaire {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-marque px-4 py-2 text-sm font-semibold text-white hover:bg-marque-fonce disabled:opacity-50;
+  }
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-danger/30 bg-white px-4 py-2 text-sm font-semibold text-danger hover:bg-danger-pale;
+  }
+  .puce {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap;
+  }
+  .coche {
+    @apply flex cursor-pointer items-center gap-2 rounded-lg border border-trait bg-white px-3 py-2 text-sm has-[:checked]:border-marque has-[:checked]:bg-marque-pale;
+  }
+}
+
+/* cibles tactiles confortables sur telephone */
+@media (pointer: coarse) {
+  .btn,
+  .btn-primaire,
+  .btn-danger,
+  .champ {
+    min-height: 2.75rem;
+  }
+}

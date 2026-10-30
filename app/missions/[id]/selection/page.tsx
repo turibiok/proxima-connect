@@ -31,8 +31,8 @@ interface Profil {
 
 /**
  * Selection des profils compatibles (cahier des charges 5.3) : le vivier
- * verifie est classe selon le besoin — type de mission, zone, jours,
- * competences, score — et les profils deja engages ailleurs aux memes dates
+ * verifie est classe selon le besoin (type de mission, zone, jours,
+ * competences, score) et les profils deja engages ailleurs aux memes dates
  * sont signales. La decision reste humaine : on coche, on ajoute.
  */
 export default async function Selection({
@@ -188,7 +188,7 @@ export default async function Selection({
 
 function Puce({ c }: { c: Critere }) {
   const style = c.ok === true ? 'bg-ok-pale text-ok' : c.ok === false ? 'bg-danger-pale text-danger' : 'bg-papier text-encre-douce';
-  const signe = c.ok === true ? '✓' : c.ok === false ? '✗' : '–';
+  const signe = c.ok === true ? '✓' : c.ok === false ? '✗' : '-';
   return (
     <span className={`puce font-medium ${style}`} title={c.detail}>
       {signe} {c.libelle}

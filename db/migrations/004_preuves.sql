@@ -5,7 +5,7 @@
 -- Stockes dans la base en Phase 1 : pas de second service a heberger ni a
 -- sauvegarder, et l'acces passe par les memes controles de droits que le
 -- reste. Les photos sont reduites dans le navigateur avant l'envoi (quelques
--- centaines de Ko). A deplacer vers un stockage objet si le volume grossit —
+-- centaines de Ko). A deplacer vers un stockage objet si le volume grossit :
 -- seule la route /fichiers/[id] serait a changer.
 --
 -- Table separee de `preuve` : lister les preuves ne charge jamais les octets.

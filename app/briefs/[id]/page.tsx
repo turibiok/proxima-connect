@@ -112,7 +112,7 @@ export default async function DetailBrief({ params }: { params: Promise<{ id: st
               ).map(([k, v]) => (
                 <div key={k} className="contents">
                   <dt className="text-encre-douce">{k}</dt>
-                  <dd className="mb-1 sm:mb-0">{v || '—'}</dd>
+                  <dd className="mb-1 sm:mb-0">{v || '-'}</dd>
                 </div>
               ))}
             </dl>
@@ -161,7 +161,7 @@ export default async function DetailBrief({ params }: { params: Promise<{ id: st
                     {LIBELLES_ACTIONS[h.action] ?? h.action}
                     {h.action === 'brief_statut' && (h.details?.vers === 'abandonne' ? ' : abandonné' : ' : rouvert')}
                   </div>
-                  <div className="text-xs text-encre-douce">{dateHeure(h.cree_le)} · {h.auteur ?? '—'}</div>
+                  <div className="text-xs text-encre-douce">{dateHeure(h.cree_le)} · {h.auteur ?? '-'}</div>
                 </li>
               ))}
             </ol>

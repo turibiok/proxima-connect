@@ -1,7 +1,7 @@
 /**
  * Regles metier des profils d'intervenants (cahier des charges 5.1).
  *
- * Module pur — ni base, ni Next — pour que chaque regle soit testable seule
+ * Module pur (ni base, ni Next), pour que chaque regle soit testable seule
  * et appliquee a l'identique par le formulaire public et par le back-office.
  */
 
@@ -29,7 +29,7 @@ export const AGE_MINIMUM = 18;
  * Depuis la migration de la numerotation (novembre 2024), un numero mobile
  * beninois compte 10 chiffres et commence par 01 ; un ancien numero a
  * 8 chiffres s'obtient en le prefixant de 01. On accepte donc les deux
- * saisies, avec ou sans indicatif, et on stocke une forme unique — sans quoi
+ * saisies, avec ou sans indicatif, et on stocke une forme unique ; sans quoi
  * la meme personne pourrait s'inscrire deux fois sous deux ecritures.
  *
  * Retourne null si la saisie n'est pas un numero beninois valide.
@@ -46,7 +46,7 @@ export function normaliserTelephone(saisie: string): string | null {
 
 /** +2290197123456 -> +229 01 97 12 34 56 */
 export function afficherTelephone(e164: string | null | undefined): string {
-  if (!e164) return '—';
+  if (!e164) return '-';
   const m = /^\+229(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/.exec(e164);
   return m ? `+229 ${m.slice(1).join(' ')}` : e164;
 }
@@ -221,7 +221,7 @@ const codes = (l: { code: string }[]) => l.map((o) => o.code);
 
 /**
  * Lit et valide une inscription. Retourne soit les donnees nettoyees, soit
- * les erreurs par champ — jamais les deux.
+ * les erreurs par champ, jamais les deux.
  */
 export function lireInscription(
   f: FormLike,

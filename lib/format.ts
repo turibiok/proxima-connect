@@ -3,7 +3,7 @@
 const FUSEAU = 'Africa/Porto-Novo';
 
 export function date(d: Date | string | null | undefined): string {
-  if (!d) return '—';
+  if (!d) return '-';
   // une colonne `date` arrive en 'AAAA-MM-JJ' : la lire a midi UTC evite
   // qu'un decalage horaire la fasse changer de jour
   const v = typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d) ? new Date(`${d}T12:00:00Z`) : new Date(d);

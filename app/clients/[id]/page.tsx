@@ -136,13 +136,13 @@ export default async function FicheClient({ params }: { params: Promise<{ id: st
             <Bloc titre="Statut commercial">
               <ChoixStatutCommercial id={id} actuel={c.statut_commercial as StatutCommercial} />
               <p className="mt-2 text-xs text-encre-douce">
-                {STATUTS_COMMERCIAUX[c.statut_commercial as StatutCommercial].aide} — depuis le {date(c.statut_change_le)}.
+                {STATUTS_COMMERCIAUX[c.statut_commercial as StatutCommercial].aide}, depuis le {date(c.statut_change_le)}.
               </p>
             </Bloc>
           )}
 
           <Bloc titre="Contact">
-            <p className="font-medium">{c.contact_nom ?? '—'}</p>
+            <p className="font-medium">{c.contact_nom ?? '-'}</p>
             {c.contact_fonction && <p className="text-sm text-encre-douce">{c.contact_fonction}</p>}
             <div className="mt-2 space-y-1 text-sm">
               {c.contact_telephone && (
@@ -183,7 +183,7 @@ export default async function FicheClient({ params }: { params: Promise<{ id: st
                       {LIBELLES_ACTIONS[h.action] ?? h.action}
                       {h.details?.vers && h.action === 'client_statut' && ` : ${STATUTS_COMMERCIAUX[h.details.vers as StatutCommercial]?.libelle}`}
                     </div>
-                    <div className="text-xs text-encre-douce">{dateHeure(h.cree_le)} · {h.auteur ?? '—'}</div>
+                    <div className="text-xs text-encre-douce">{dateHeure(h.cree_le)} · {h.auteur ?? '-'}</div>
                   </li>
                 ))}
               </ol>

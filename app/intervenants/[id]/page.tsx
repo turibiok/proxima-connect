@@ -201,7 +201,7 @@ export default async function FicheIntervenant({ params }: { params: Promise<{ i
           </Bloc>
 
           <Bloc titre="PROXIMA SCORE">
-            <p className="text-3xl font-bold tabular-nums">{p.score === null ? '—' : Math.round(p.score)}</p>
+            <p className="text-3xl font-bold tabular-nums">{p.score === null ? '-' : Math.round(p.score)}</p>
             <p className="text-xs text-encre-douce">Calculé à partir des évaluations de missions (module 5.5).</p>
           </Bloc>
 
@@ -251,7 +251,7 @@ function Infos({ lignes }: { lignes: [string, string | null | undefined][] }) {
       {lignes.map(([k, v]) => (
         <div key={k} className="contents">
           <dt className="text-encre-douce">{k}</dt>
-          <dd className="mb-1 whitespace-pre-line sm:mb-0">{v || '—'}</dd>
+          <dd className="mb-1 whitespace-pre-line sm:mb-0">{v || '-'}</dd>
         </div>
       ))}
     </dl>

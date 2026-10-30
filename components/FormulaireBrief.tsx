@@ -75,7 +75,7 @@ export function FormulaireBrief({
             <input id="date_fin" name="date_fin" type="date" defaultValue={val('date_fin')} className="champ" />
           </Champ>
           <Champ nom="horaires" libelle="Horaires" facultatif>
-            <input id="horaires" name="horaires" defaultValue={val('horaires')} placeholder="Ex. : 8 h – 13 h" className="champ" />
+            <input id="horaires" name="horaires" defaultValue={val('horaires')} placeholder="Ex. : 8 h à 13 h" className="champ" />
           </Champ>
           <Champ nom="duree" libelle="Durée" facultatif>
             <input id="duree" name="duree" defaultValue={val('duree')} placeholder="Ex. : 3 samedis" className="champ" />

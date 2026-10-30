@@ -108,13 +108,13 @@ export function FormulaireIntervenant({ mode }: { mode: 'public' | 'interne' }) 
         <div className="grid gap-4 sm:grid-cols-2">
           <Champ nom="situation" libelle="Situation actuelle" facultatif>
             <select id="situation" name="situation" defaultValue={val('situation')} className="champ">
-              <option value="">—</option>
+              <option value="">Non précisé</option>
               {SITUATIONS.map((o) => <option key={o.code} value={o.code}>{o.libelle}</option>)}
             </select>
           </Champ>
           <Champ nom="niveau_etudes" libelle="Niveau d’études" facultatif>
             <select id="niveau_etudes" name="niveau_etudes" defaultValue={val('niveau_etudes')} className="champ">
-              <option value="">—</option>
+              <option value="">Non précisé</option>
               {NIVEAUX_ETUDES.map((o) => <option key={o.code} value={o.code}>{o.libelle}</option>)}
             </select>
           </Champ>
@@ -170,7 +170,7 @@ export function FormulaireIntervenant({ mode }: { mode: 'public' | 'interne' }) 
           </Champ>
           <Champ nom="piece_type" libelle="Type de pièce d’identité" facultatif>
             <select id="piece_type" name="piece_type" defaultValue={val('piece_type')} className="champ">
-              <option value="">—</option>
+              <option value="">Non précisé</option>
               {PIECES.map((o) => <option key={o.code} value={o.code}>{o.libelle}</option>)}
             </select>
           </Champ>

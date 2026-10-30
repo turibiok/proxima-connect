@@ -11,7 +11,7 @@
 
 export type Option = { code: string; libelle: string };
 
-/** Catalogue des missions — Annexe A du cahier des charges. */
+/** Catalogue des missions : Annexe A du cahier des charges. */
 export const CATEGORIES_MISSIONS: (Option & { types: string[] })[] = [
   {
     code: 'distribution',
@@ -189,7 +189,7 @@ export const STATUTS_PROFIL: Record<StatutProfil, { libelle: string; ton: 'neutr
 };
 
 export function libelle(liste: Option[], code: string | null | undefined): string {
-  if (!code) return '—';
+  if (!code) return '-';
   return liste.find((o) => o.code === code)?.libelle ?? code;
 }
 

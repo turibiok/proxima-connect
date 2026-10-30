@@ -127,7 +127,7 @@ export default async function Preuves({
         <Chiffre libelle="À contrôler" valeur={String(bilan.enAttente)} alerte={bilan.enAttente > 0} />
         <Chiffre
           libelle="Données rejetées"
-          valeur={rejet === null ? '—' : `${Math.round(rejet * 1000) / 10} %`}
+          valeur={rejet === null ? '-' : `${Math.round(rejet * 1000) / 10} %`}
           detail="cible : moins de 5 %"
           alerte={rejet !== null && rejet >= 0.05}
         />
@@ -197,7 +197,7 @@ export default async function Preuves({
                     <ul className="mt-2 space-y-1 text-sm">
                       {p.fichiers.filter((f) => !estImage(f.type_mime)).map((f) => (
                         <li key={f.id}>
-                          <a href={`/fichiers/${f.id}`} className="text-marque hover:underline">📄 {f.nom}</a>{' '}
+                          <a href={`/fichiers/${f.id}`} className="text-marque hover:underline">{f.nom}</a>{' '}
                           <span className="text-xs text-encre-douce">({Math.max(1, Math.round(f.taille / 1024))} Ko)</span>
                         </li>
                       ))}
@@ -229,7 +229,7 @@ export default async function Preuves({
                       <span className={`text-xs ${i.resolu_le ? 'text-ok' : 'text-alerte'}`}>{i.resolu_le ? 'Résolu' : 'Ouvert'}</span>
                     </div>
                     <p className="mt-1 whitespace-pre-line">{i.description}</p>
-                    <p className="text-xs text-encre-douce">{dateHeure(i.declare_le)} · {i.auteur ?? '—'}{i.intervenant && ` · ${i.intervenant}`}</p>
+                    <p className="text-xs text-encre-douce">{dateHeure(i.declare_le)} · {i.auteur ?? '-'}{i.intervenant && ` · ${i.intervenant}`}</p>
                     {i.resolution && <p className="mt-1 text-xs text-ok">Résolution : {i.resolution}</p>}
                     {!i.resolu_le && suivi && <Resolution missionId={id} incidentId={i.id} />}
                   </li>
@@ -259,7 +259,7 @@ export default async function Preuves({
                       </span>
                     </div>
                     {c.commentaire && <p className="mt-1 whitespace-pre-line">{c.commentaire}</p>}
-                    <p className="text-xs text-encre-douce">{dateHeure(c.realise_le)} · {c.auteur ?? '—'}{c.intervenant && ` · ${c.intervenant}`}</p>
+                    <p className="text-xs text-encre-douce">{dateHeure(c.realise_le)} · {c.auteur ?? '-'}{c.intervenant && ` · ${c.intervenant}`}</p>
                   </li>
                 ))}
               </ul>
@@ -285,7 +285,7 @@ function Details({ p }: { p: Preuve }) {
         <div>
           <dt className="sr-only">Position</dt>
           <dd>
-            📍{' '}
+            Position :{' '}
             <a href={lienCarte(p.latitude, p.longitude)} target="_blank" rel="noreferrer" className="text-marque hover:underline">
               {p.latitude.toFixed(5)}, {p.longitude.toFixed(5)}
             </a>

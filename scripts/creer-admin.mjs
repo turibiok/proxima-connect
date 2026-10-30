@@ -7,7 +7,7 @@
  *
  * Le mot de passe est genere ici, affiche une seule fois dans le terminal, et
  * marque provisoire : l'application exige de le remplacer a la premiere
- * connexion. Il n'est ecrit nulle part ailleurs — ni fichier, ni variable
+ * connexion. Il n'est ecrit nulle part ailleurs : ni fichier, ni variable
  * d'environnement de l'hebergeur.
  */
 import { randomBytes } from 'node:crypto';
@@ -76,7 +76,7 @@ try {
 
   console.log('');
   console.log(`  Base        : ${hote}`);
-  console.log(`  Compte      : ${email} (administrateur)${existant.rowCount ? ' — mot de passe reinitialise' : ''}`);
+  console.log(`  Compte      : ${email} (administrateur)${existant.rowCount ? ', mot de passe reinitialise' : ''}`);
   console.log(`  Provisoire  : ${motDePasse}`);
   console.log('');
   console.log('  Ce mot de passe ne sera plus affiche. Il devra etre remplace a la premiere connexion.');

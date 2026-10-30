@@ -66,7 +66,7 @@ export function SaisiePreuve({ missionId, equipe }: { missionId: string; equipe:
         <label className="block">
           <span className="etiquette">Intervenant concerné</span>
           <select name="intervenant_id" defaultValue={v.intervenant_id ?? ''} className="champ">
-            <option value="">— Toute l’équipe —</option>
+            <option value="">Toute l’équipe</option>
             {equipe.map((p) => <option key={p.id} value={p.id}>{p.nom}</option>)}
           </select>
         </label>
@@ -176,7 +176,7 @@ function Position({ obligatoire, v, erreur }: { obligatoire: boolean; v: Record<
         Position {!obligatoire && <span className="font-normal text-encre-douce">(facultatif)</span>}
       </legend>
       <div className="flex flex-wrap items-end gap-2">
-        <button type="button" onClick={localiser} className="btn">📍 Utiliser ma position</button>
+        <button type="button" onClick={localiser} className="btn">Utiliser ma position</button>
         <input ref={lat} name="latitude" inputMode="decimal" defaultValue={v.latitude ?? ''} placeholder="Latitude" aria-label="Latitude" className="champ w-32" />
         <input ref={lon} name="longitude" inputMode="decimal" defaultValue={v.longitude ?? ''} placeholder="Longitude" aria-label="Longitude" className="champ w-32" />
         <input ref={precision} type="hidden" name="precision_m" defaultValue={v.precision_m ?? ''} />

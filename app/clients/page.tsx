@@ -114,10 +114,10 @@ export default async function Clients({ searchParams }: { searchParams: Promise<
                   <tr key={l.id} className="hover:bg-papier/60">
                     <td className="px-4 py-2.5">
                       <Link href={`/clients/${l.id}`} className="font-semibold text-marque-fonce hover:underline">{l.raison_sociale}</Link>
-                      <div className="text-xs text-encre-douce">{[l.secteur, l.ville].filter(Boolean).join(' · ') || '—'}</div>
+                      <div className="text-xs text-encre-douce">{[l.secteur, l.ville].filter(Boolean).join(' · ') || '-'}</div>
                     </td>
                     <td className="px-4 py-2.5">
-                      {l.contact_nom ?? '—'}
+                      {l.contact_nom ?? '-'}
                       <div className="text-xs text-encre-douce">{l.contact_telephone ? afficherTelephone(l.contact_telephone) : l.contact_email}</div>
                     </td>
                     <td className="px-4 py-2.5 text-right tabular-nums">
@@ -125,7 +125,7 @@ export default async function Clients({ searchParams }: { searchParams: Promise<
                     </td>
                     <td className="px-4 py-2.5 text-right tabular-nums">{l.missions}</td>
                     <td className={`whitespace-nowrap px-4 py-2.5 text-right tabular-nums ${credit.niveau === 'depasse' ? 'font-semibold text-danger' : credit.niveau === 'proche' ? 'text-alerte' : ''}`}>
-                      {l.encours ? formaterFCFA(l.encours) : '—'}
+                      {l.encours ? formaterFCFA(l.encours) : '-'}
                       {credit.niveau === 'depasse' && <div className="text-xs">Limite dépassée</div>}
                     </td>
                     <td className="px-4 py-2.5"><PuceCommerciale statut={l.statut_commercial} /></td>

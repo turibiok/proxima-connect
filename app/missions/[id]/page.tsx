@@ -239,7 +239,7 @@ export default async function Mission({ params }: { params: Promise<{ id: string
               {modifiable ? (
                 <Briefing id={id} le={versSaisieLocale(m.briefing_le)} lieu={m.briefing_lieu ?? ''} notes={m.briefing_notes ?? ''} />
               ) : (
-                <p className="text-sm">{m.briefing_le ? `${dateHeure(m.briefing_le)} — ${m.briefing_lieu ?? ''}` : 'Pas encore organisé.'}</p>
+                <p className="text-sm">{m.briefing_le ? `${dateHeure(m.briefing_le)}${m.briefing_lieu ? `, ${m.briefing_lieu}` : ''}` : 'Pas encore organisé.'}</p>
               )}
             </section>
           )}
@@ -270,7 +270,7 @@ export default async function Mission({ params }: { params: Promise<{ id: string
               ).map(([k, v]) => (
                 <div key={k} className="flex justify-between gap-3">
                   <dt className="text-encre-douce">{k}</dt>
-                  <dd className="text-right">{v || '—'}</dd>
+                  <dd className="text-right">{v || '-'}</dd>
                 </div>
               ))}
             </dl>
@@ -282,7 +282,7 @@ export default async function Mission({ params }: { params: Promise<{ id: string
             <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-encre-douce">Économie</h2>
             <dl className="space-y-2 text-sm">
               <Ligne k="Par intervenant" v={formaterFCFA(m.remuneration_agent_fcfa)} />
-              <Ligne k={`Coût de ${m.nb_profils_requis} intervenant${m.nb_profils_requis > 1 ? 's' : ''}`} v={eco ? formaterFCFA(eco.cout) : '—'} />
+              <Ligne k={`Coût de ${m.nb_profils_requis} intervenant${m.nb_profils_requis > 1 ? 's' : ''}`} v={eco ? formaterFCFA(eco.cout) : '-'} />
               <Ligne k="Budget client" v={formaterFCFA(m.budget_fcfa)} />
               {eco?.marge != null && (
                 <Ligne k="Marge brute" v={`${formaterFCFA(eco.marge)} (${Math.round((eco.taux ?? 0) * 100)} %)`} alerte={eco.marge < 0} />
@@ -298,7 +298,7 @@ export default async function Mission({ params }: { params: Promise<{ id: string
                   <div className="font-medium">
                     {LIBELLES_ACTIONS[h.action] ?? h.action}
                     {h.action === 'mission_statut' && ` : ${LIBELLES_STATUT_MISSION[h.details?.vers as StatutMission] ?? ''}`}
-                    {h.details?.intervenant && ` — ${h.details.intervenant}`}
+                    {h.details?.intervenant && ` : ${h.details.intervenant}`}
                     {h.action === 'affectation_reponse' && (h.details?.reponse === 'accepte' ? ' (accepte)' : ' (refuse)')}
                     {h.action === 'affectation_presence' && ` (${h.details?.presence})`}
                     {h.action === 'affectation_ajout' && ` (${h.details?.nombre} ${h.details?.role === 'remplacant' ? 'en réserve' : 'titulaire(s)'})`}
@@ -306,7 +306,7 @@ export default async function Mission({ params }: { params: Promise<{ id: string
                     {h.action === 'preuve_ajout' && h.details?.type && ` (${h.details.type.replace('_', '-')})`}
                   </div>
                   <div className="text-xs text-encre-douce">
-                    {dateHeure(h.cree_le)} · {h.auteur ?? '—'}
+                    {dateHeure(h.cree_le)} · {h.auteur ?? '-'}
                     {h.details?.motif && ` · « ${h.details.motif} »`}
                   </div>
                 </li>

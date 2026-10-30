@@ -2,7 +2,7 @@
  * Roles et droits (cahier des charges, section 4).
  *
  * Module pur : le menu (client) comme les gardes (serveur) s'y referent.
- * Masquer un lien n'est pas un controle d'acces — chaque page et chaque
+ * Masquer un lien n'est pas un controle d'acces : chaque page et chaque
  * action revalide le droit cote serveur.
  */
 

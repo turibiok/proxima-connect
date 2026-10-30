@@ -21,7 +21,7 @@ export function Controles({ id, controles, modifiable }: { id: string; controles
             <div className="text-sm font-medium">{c.libelle}</div>
             <div className="text-xs text-encre-douce">
               {c.detail}
-              {c.ok && c.par && ` — par ${c.par}`}
+              {c.ok && c.par && `, par ${c.par}`}
               {c.ok && c.le && `, le ${c.le}`}
             </div>
           </div>

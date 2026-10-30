@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 /**
  * Confort de navigation : renvoie vers la connexion quand aucun cookie de
- * session n'est present. Ce n'est PAS le controle d'acces — le middleware ne
+ * session n'est present. Ce n'est PAS le controle d'acces : le middleware ne
  * lit pas la base. Les pages et les actions revalident la session et les
  * droits cote serveur (lib/auth/session.ts).
  */

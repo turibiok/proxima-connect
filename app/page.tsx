@@ -56,8 +56,8 @@ export default async function TableauDeBord() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Indicateur libelle="Taux de présence" valeur={c.presence === null ? "—" : `${Math.round(c.presence * 100)} %`} cible="95 % et plus" detail="titulaires pointés" />
-        <Indicateur libelle="Données rejetées" valeur={c.rejet === null ? "—" : `${Math.round(c.rejet * 1000) / 10} %`} cible="moins de 5 %" detail={`${c.incidents} incident(s) ouvert(s)`} />
+        <Indicateur libelle="Taux de présence" valeur={c.presence === null ? "-" : `${Math.round(c.presence * 100)} %`} cible="95 % et plus" detail="titulaires pointés" />
+        <Indicateur libelle="Données rejetées" valeur={c.rejet === null ? "-" : `${Math.round(c.rejet * 1000) / 10} %`} cible="moins de 5 %" detail={`${c.incidents} incident(s) ouvert(s)`} />
       </div>
 
       <div className="grid gap-5 lg:grid-cols-3">

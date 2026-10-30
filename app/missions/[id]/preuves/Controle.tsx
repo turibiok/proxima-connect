@@ -65,7 +65,7 @@ export function NouveauControle({ missionId, equipe }: { missionId: string; equi
         <label className="block">
           <span className="etiquette">Intervenant</span>
           <select name="intervenant_id" defaultValue={v.intervenant_id ?? ''} className="champ">
-            <option value="">— Toute l’équipe —</option>
+            <option value="">Toute l’équipe</option>
             {equipe.map((p) => <option key={p.id} value={p.id}>{p.nom}</option>)}
           </select>
         </label>
@@ -99,7 +99,7 @@ export function NouvelIncident({ missionId, equipe }: { missionId: string; equip
         <label className="block">
           <span className="etiquette">Intervenant concerné</span>
           <select name="intervenant_id" defaultValue={v.intervenant_id ?? ''} className="champ">
-            <option value="">— Aucun en particulier —</option>
+            <option value="">Aucun en particulier</option>
             {equipe.map((p) => <option key={p.id} value={p.id}>{p.nom}</option>)}
           </select>
         </label>

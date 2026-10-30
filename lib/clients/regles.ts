@@ -1,7 +1,7 @@
 /**
  * Regles metier des clients et des briefs (cahier des charges 5.2).
  *
- * Module pur — ni base, ni Next — teste par tests/clients.test.mjs.
+ * Module pur (ni base, ni Next), teste par tests/clients.test.mjs.
  */
 
 import { CATEGORIES_MISSIONS } from '../referentiel.ts';
@@ -58,7 +58,7 @@ export function lireMontant(saisie: string): number | null {
 
 /** 1500000 -> « 1 500 000 FCFA » (espaces insecables, comme en typographie francaise). */
 export function formaterFCFA(n: number | null | undefined): string {
-  if (n === null || n === undefined) return '—';
+  if (n === null || n === undefined) return '-';
   return `${Math.round(n).toLocaleString('fr-FR').replace(/\s/g, ' ')} FCFA`;
 }
 

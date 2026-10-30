@@ -8,7 +8,7 @@ const t = (v: unknown) => (v === null || v === undefined ? '' : String(v));
 export function valeursDepuisBrief(b: Record<string, any>): Record<string, string> {
   return {
     client_id: t(b.client_id),
-    titre: `${b.type_mission ?? (b.categorie ? libelleCategorie(b.categorie) : 'Mission')} — ${b.raison_sociale}`,
+    titre: `${b.type_mission ?? (b.categorie ? libelleCategorie(b.categorie) : 'Mission')} pour ${b.raison_sociale}`,
     type_mission: valeurTypeMission(b.categorie, b.type_mission),
     zone: t(b.zone),
     date_debut: t(b.date_debut),

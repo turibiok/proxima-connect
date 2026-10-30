@@ -111,7 +111,7 @@ export default async function Missions({ searchParams }: { searchParams: Promise
                     </td>
                     <td className="px-4 py-2.5">
                       {periode(m.date_debut, m.date_fin)}
-                      <div className="truncate text-xs text-encre-douce">{m.zone ?? '—'}</div>
+                      <div className="truncate text-xs text-encre-douce">{m.zone ?? '-'}</div>
                     </td>
                     <td className="px-4 py-2.5 tabular-nums">
                       <span className={complet ? 'font-semibold text-ok' : ''}>{m.engages}</span> / {m.nb_profils_requis}

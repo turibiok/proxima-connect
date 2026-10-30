@@ -119,7 +119,7 @@ test('economie : cout et marge', () => {
 test('proposition : conditions annoncees, texte court', () => {
   const m = messageProposition({
     prenom: 'Afi Mireille', titre: 'Relevés de prix', lieu: null, zone: 'Cotonou', date_debut: '2026-11-14',
-    date_fin: '2026-11-15', horaires: '8 h – 13 h', remuneration: 15000, objectifs: 'x'.repeat(300), role: 'titulaire',
+    date_fin: '2026-11-15', horaires: '8 h à 13 h', remuneration: 15000, objectifs: 'x'.repeat(300), role: 'titulaire',
   });
   assert.match(m, /^Bonjour Afi,/);
   assert.match(m, /Rémunération : 15 000 FCFA/);

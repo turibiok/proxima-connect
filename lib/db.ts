@@ -5,7 +5,7 @@ import pg from 'pg';
  *
  * Un seul pool par processus, garde sur `globalThis` : en developpement, le
  * rechargement a chaud de Next reevalue les modules et ouvrirait sinon un
- * nouveau pool — et de nouvelles connexions Neon — a chaque modification.
+ * nouveau pool, et de nouvelles connexions Neon, a chaque modification.
  *
  * Pas d'ORM : les requetes restent du SQL standard, portable vers tout
  * hebergeur PostgreSQL.

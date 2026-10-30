@@ -1,6 +1,6 @@
-# PROXIMA CONNECT — Note de cadrage technique
+# PROXIMA CONNECT : note de cadrage technique
 
-*Version 0.1 — octobre 2026. Réponse au livrable n° 1 du cahier des charges (section 10).*
+*Version 0.1, octobre 2026. Réponse au livrable n° 1 du cahier des charges (section 10).*
 
 Cette note fixe les choix d'architecture, le modèle de données, la liste des écrans et le découpage de la Phase 1. Elle suit la consigne du cahier des charges : une première version simple (formulaire + base de données + outil de gestion + tableau de bord). On n'investit pas dans la technique tant que le modèle économique n'est pas validé.
 

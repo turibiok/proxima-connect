@@ -27,7 +27,7 @@ test('montants : ecritures usuelles acceptees, decimales et lettres refusees', (
 
 test('montants : affichage', () => {
   assert.equal(formaterFCFA(1500000), '1 500 000 FCFA');
-  assert.equal(formaterFCFA(null), '—');
+  assert.equal(formaterFCFA(null), '-');
 });
 
 test('IFU : 13 chiffres', () => {

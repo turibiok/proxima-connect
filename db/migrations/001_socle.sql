@@ -1,4 +1,4 @@
--- PROXIMA CONNECT — schema initial.
+-- PROXIMA CONNECT : schema initial.
 --
 -- Toutes les tables du cahier des charges (section 7) sont creees des la
 -- Phase 1, y compris celles des modules qui viendront ensuite (score,

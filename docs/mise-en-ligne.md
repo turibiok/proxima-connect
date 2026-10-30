@@ -1,4 +1,4 @@
-# PROXIMA CONNECT — Mise en ligne
+# PROXIMA CONNECT : mise en ligne
 
 Ce guide décrit comment publier l'application. **Rien n'est encore publié.** Le code est prêt et vérifié : la construction de production passe et l'application a été testée en local. Les étapes ci-dessous créent les services en ligne.
 
@@ -25,10 +25,10 @@ Ce guide décrit comment publier l'application. **Rien n'est encore publié.** L
 Intervenants et équipes (navigateur)
           │ HTTPS
           ▼
-Vercel — application Next.js, région Francfort (fra1)
+Vercel : application Next.js, région Francfort (fra1)
           │ TLS (connexion « pooled »)
           ▼
-Neon — projet « Proxima Connect — production », région Francfort
+Neon : projet « Proxima Connect production », région Francfort
 ```
 
 La base de **production** est un projet Neon **distinct** de celui de développement, pour trois raisons :
@@ -54,10 +54,10 @@ Le fichier `.env.production.local` est exclu de git (règle `.env*.local`). Il c
 
 ## 4. Étapes
 
-### Étape A — Base de production (Neon)
+### Étape A. Base de production (Neon)
 
 1. Dans la console Neon, créez un nouveau projet :
-   - nom : `Proxima Connect — production` ;
+   - nom : `Proxima Connect production` ;
    - région : **AWS Europe Central 1 (Francfort)** ;
    - PostgreSQL 18 ;
    - nom de base : `proxima`.
@@ -74,7 +74,7 @@ Le fichier `.env.production.local` est exclu de git (règle `.env*.local`). Il c
 
 > Ne lancez **jamais** `npm run semer` sur la production : il ajouterait des profils fictifs.
 
-### Étape B — Premier administrateur
+### Étape B. Premier administrateur
 
 ```bash
 npm run creer-admin:prod -- --email prenom.nom@proxima.bj --nom "Prénom Nom"
@@ -84,14 +84,14 @@ Le terminal affiche la base visée (vérifiez qu'il s'agit bien de la production
 
 Si ce mot de passe est perdu avant la première connexion, relancez la même commande avec `--reinitialiser`.
 
-### Étape C — Dépôt du code
+### Étape C. Dépôt du code
 
 Vercel construit l'application depuis un dépôt git. Deux possibilités :
 
 - **GitHub (recommandé)** : créer un dépôt **privé** `proxima-connect` et y pousser la branche `main`. Chaque nouveau commit pourra alors être publié automatiquement.
 - **CLI Vercel** : `npx vercel` depuis le dossier, sans GitHub. C'est plus simple au départ, mais les déploiements ne se font qu'à la main.
 
-### Étape D — Projet Vercel
+### Étape D. Projet Vercel
 
 1. Importez le dépôt dans Vercel. Le type de projet (Next.js) est détecté automatiquement.
 2. Dans *Settings → Environment Variables*, ajoutez `DATABASE_URL` (production) pour l'environnement **Production** seulement.
@@ -100,7 +100,7 @@ Vercel construit l'application depuis un dépôt git. Deux possibilités :
 
 **Offre Vercel** : l'offre gratuite (*Hobby*) est réservée aux usages non commerciaux. PROXIMA CONNECT étant une activité commerciale, il faut l'offre **Pro**, environ 20 USD par mois et par membre (tarif à confirmer au moment de la souscription).
 
-### Étape E — Nom de domaine
+### Étape E. Nom de domaine
 
 Par exemple `app.proximaconnect.bj` :
 
@@ -110,7 +110,7 @@ Par exemple `app.proximaconnect.bj` :
 
 Le lien à diffuser aux intervenants est alors `https://app.proximaconnect.bj/inscription`.
 
-### Étape F — Recette après mise en ligne
+### Étape F. Recette après mise en ligne
 
 À faire sur la vraie adresse, de préférence depuis un téléphone sur réseau mobile :
 

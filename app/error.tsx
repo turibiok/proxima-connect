@@ -3,7 +3,7 @@
 /**
  * Erreur inattendue dans une page. Le detail technique reste dans les
  * journaux du serveur ; l'utilisateur recoit un message et un moyen de
- * reessayer — utile quand la base se reveille apres une periode d'inactivite.
+ * reessayer, utile quand la base se reveille apres une periode d'inactivite.
  */
 export default function Erreur({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (

@@ -64,7 +64,7 @@ export function FormulaireMission({
           </Champ>
           <Champ nom="responsable_id" libelle="Chargé(e) de mission" facultatif>
             <select id="responsable_id" name="responsable_id" defaultValue={val('responsable_id')} className="champ">
-              <option value="">—</option>
+              <option value="">Non attribué</option>
               {responsables.map((r) => <option key={r.id} value={r.id}>{r.nom_complet}</option>)}
             </select>
           </Champ>
@@ -92,7 +92,7 @@ export function FormulaireMission({
             <input id="date_fin" name="date_fin" type="date" defaultValue={val('date_fin')} className="champ" />
           </Champ>
           <Champ nom="horaires" libelle="Horaires" facultatif>
-            <input id="horaires" name="horaires" defaultValue={val('horaires')} placeholder="Ex. : 8 h – 13 h" className="champ" />
+            <input id="horaires" name="horaires" defaultValue={val('horaires')} placeholder="Ex. : 8 h à 13 h" className="champ" />
           </Champ>
         </div>
       </Section>

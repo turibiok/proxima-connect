@@ -59,7 +59,7 @@ export default async function Journal() {
                   ) : l.entite === 'mission' && l.entite_id ? (
                     <Link href={`/missions/${l.entite_id}`} className="text-marque hover:underline">
                       Mission {(l.details?.reference as string) ?? ''}
-                      {typeof l.details?.intervenant === 'string' && ` — ${l.details.intervenant}`}
+                      {typeof l.details?.intervenant === 'string' && ` : ${l.details.intervenant}`}
                     </Link>
                   ) : l.entite === 'brief' && l.entite_id ? (
                     <Link href={`/briefs/${l.entite_id}`} className="text-marque hover:underline">
@@ -72,7 +72,7 @@ export default async function Journal() {
                     </span>
                   )}
                 </td>
-                <td className="px-4 py-2 font-mono text-xs text-encre-douce">{l.ip ?? '—'}</td>
+                <td className="px-4 py-2 font-mono text-xs text-encre-douce">{l.ip ?? '-'}</td>
               </tr>
             ))}
           </tbody>

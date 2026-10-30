@@ -3,7 +3,7 @@
  *
  * Construit la clause WHERE et ses parametres a partir des filtres de l'URL.
  * Module pur : la requete produite est verifiee par les tests sans base.
- * Aucune valeur saisie n'est concatenee dans le SQL — tout passe en parametre.
+ * Aucune valeur saisie n'est concatenee dans le SQL : tout passe en parametre.
  */
 
 export interface Filtres {

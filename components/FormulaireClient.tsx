@@ -43,7 +43,7 @@ export function FormulaireClient({ id, initiales = {} }: { id: string | null; in
           <Champ nom="statut_commercial" libelle="Statut commercial">
             <select id="statut_commercial" name="statut_commercial" defaultValue={val('statut_commercial') || 'prospect'} className="champ">
               {Object.entries(STATUTS_COMMERCIAUX).map(([c, s]) => (
-                <option key={c} value={c}>{s.libelle} — {s.aide}</option>
+                <option key={c} value={c}>{s.libelle} : {s.aide}</option>
               ))}
             </select>
           </Champ>

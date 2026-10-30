@@ -140,7 +140,7 @@ export default async function Intervenants({ searchParams }: { searchParams: Pro
                     {l.categories_missions.map(libelleCategorie).join(', ')}
                   </td>
                   <td className="px-4 py-2.5 text-right tabular-nums">
-                    {l.score === null ? <span className="text-encre-douce">—</span> : Math.round(l.score)}
+                    {l.score === null ? <span className="text-encre-douce">-</span> : Math.round(l.score)}
                     <div className="text-xs text-encre-douce">{l.missions} mission{l.missions > 1 ? 's' : ''}</div>
                   </td>
                   <td className="px-4 py-2.5"><PuceStatut statut={l.statut} /></td>

@@ -63,7 +63,7 @@ export const TAILLE_MAX = 8 * 1024 * 1024;
 export const FICHIERS_MAX = 10;
 
 /**
- * Type reel d'un fichier, lu dans ses premiers octets — jamais d'apres son nom
+ * Type reel d'un fichier, lu dans ses premiers octets, jamais d'apres son nom
  * ou ce que declare le navigateur, qu'un envoi malveillant choisit librement.
  * Les formats acceptes sont ceux qu'on sait servir sans risque : pas de SVG
  * (il peut contenir du script), pas de HTML.

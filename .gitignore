@@ -9,3 +9,7 @@ tsconfig.tsbuildinfo
 
 # Documents du client, hors depot (cahier des charges, dossier strategique)
 *.pdf
+
+.vercel
+.env*
+!.env.example

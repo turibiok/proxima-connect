@@ -54,6 +54,10 @@ Le fichier `.env.production.local` est exclu de git (règle `.env*.local`). Il c
 
 ## 4. Étapes
 
+> **Sous Windows, dans PowerShell** : si `npm` répond « l'exécution de scripts est désactivée sur ce système », tapez `npm.cmd` à la place de `npm`, par exemple `npm.cmd run migrer:prod`. Le résultat est identique et aucun réglage de sécurité du poste n'est à modifier. L'Invite de commandes (`cmd`) n'a pas ce blocage.
+>
+> Si une commande répond `Cannot find package 'pg'`, les dépendances manquent (dossier `node_modules` absent) : lancez d'abord `npm.cmd ci`.
+
 ### Étape A. Base de production (Neon)
 
 1. Dans la console Neon, créez un nouveau projet :

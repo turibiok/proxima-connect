@@ -2,7 +2,7 @@
 
 Back-office de PROXIMA CONNECT. Il gère le vivier d'intervenants, les clients, les missions et les preuves terrain.
 
-- **Cahier des charges** : `PROXIMA_CONNECT_Cahier_des_Charges_IT.pdf`
+- **Cahier des charges** : document PDF fourni par PROXIMA CONNECT, conservé hors du dépôt
 - **Note de cadrage technique** : [docs/note-de-cadrage.md](docs/note-de-cadrage.md)
 - **Mise en ligne** : [docs/mise-en-ligne.md](docs/mise-en-ligne.md)
 

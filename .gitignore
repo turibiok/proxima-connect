@@ -6,3 +6,6 @@ node_modules/
 next-env.d.ts
 tsconfig.tsbuildinfo
 *.log
+
+# Documents du client, hors depot (cahier des charges, dossier strategique)
+*.pdf

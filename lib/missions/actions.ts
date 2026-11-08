@@ -6,6 +6,7 @@ import type { PoolClient } from 'pg';
 import { transaction, une } from '@/lib/db';
 import { exigerAction, type Contexte } from '@/lib/auth/session';
 import { consigner } from '@/lib/journal';
+import { recalculerScore } from '@/lib/score/calcul';
 import {
   equipe,
   lireMission,
@@ -284,6 +285,7 @@ async function operation(c: PoolClient, ctx: Contexte, missionId: string, affect
       if (!['execution', 'preuves_collectees'].includes(a.mission_statut)) throw new Error('La présence se note pendant l’exécution.');
       if (a.role !== 'titulaire' || a.reponse !== 'accepte') throw new Error('Seuls les intervenants engagés sont pointés.');
       await c.query('UPDATE affectation SET presence = $2, presence_notee_le = now() WHERE id = $1', [affectationId, valeur]);
+      await recalculerScore(c, a.intervenant_id, `Présence pointée sur la mission ${a.reference}`, { utilisateurId: ctx.utilisateur.id });
       return trace('affectation_presence', { presence: valeur });
     }
     case 'remplacer': {

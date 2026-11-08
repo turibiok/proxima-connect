@@ -25,6 +25,7 @@ import {
 } from '@/lib/referentiel';
 import { PuceStatut } from '@/components/Statut';
 import { ChangementStatut, Controles } from './Verification';
+import { SectionScore } from './Score';
 
 export const metadata = { title: 'Fiche intervenant' };
 
@@ -169,6 +170,8 @@ export default async function FicheIntervenant({ params }: { params: Promise<{ i
               </ul>
             )}
           </Bloc>
+
+          <SectionScore intervenantId={id} score={p.score} ctx={ctx} />
         </div>
 
         <div className="space-y-5">
@@ -202,7 +205,7 @@ export default async function FicheIntervenant({ params }: { params: Promise<{ i
 
           <Bloc titre="PROXIMA SCORE">
             <p className="text-3xl font-bold tabular-nums">{p.score === null ? '-' : Math.round(p.score)}</p>
-            <p className="text-xs text-encre-douce">Calculé à partir des évaluations de missions (module 5.5).</p>
+            <a href="#score" className="text-xs text-marque hover:underline">Détail, évolution et évaluations</a>
           </Bloc>
 
           <Bloc titre="Consentement">

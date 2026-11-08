@@ -121,12 +121,15 @@ export default async function Mission({ params }: { params: Promise<{ id: string
             {m.brief_id && <> · <Link href={`/briefs/${m.brief_id}`} className="hover:underline">voir le brief</Link></>}
           </p>
         </div>
-        {modifiable && (
-          <div className="flex gap-2">
-            <Link href={`/missions/${id}/modifier`} className="btn">Modifier</Link>
-            {composition && <Link href={`/missions/${id}/selection`} className="btn-primaire">Sélectionner des profils</Link>}
-          </div>
-        )}
+        <div className="flex gap-2">
+          {modifiable && <Link href={`/missions/${id}/modifier`} className="btn">Modifier</Link>}
+          {modifiable && composition && <Link href={`/missions/${id}/selection`} className="btn-primaire">Sélectionner des profils</Link>}
+          {['preuves_collectees', 'controlee', 'rapport_transmis', 'payee'].includes(statut) && (
+            <Link href={`/missions/${id}/evaluations`} className={ctx.peut('mission:modifier') ? 'btn-primaire' : 'btn'}>
+              {ctx.peut('mission:modifier') ? 'Évaluer l’équipe' : 'Évaluations'}
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* parcours de la mission (cahier des charges, section 6) */}

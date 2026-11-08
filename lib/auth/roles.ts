@@ -19,7 +19,8 @@ export type Droit =
   | 'mission:modifier'
   | 'tableau:lire'
   | 'journal:lire'
-  | 'compte:gerer';
+  | 'compte:gerer'
+  | 'parametre:gerer'; // ponderation du score et autres reglages
 
 export const ROLES: Record<Role, { libelle: string; droits: Droit[] }> = {
   admin: {
@@ -27,7 +28,7 @@ export const ROLES: Record<Role, { libelle: string; droits: Droit[] }> = {
     droits: [
       'profil:lire', 'profil:sensible', 'profil:modifier', 'profil:verifier',
       'client:lire', 'client:modifier', 'mission:lire', 'mission:modifier',
-      'tableau:lire', 'journal:lire', 'compte:gerer',
+      'tableau:lire', 'journal:lire', 'compte:gerer', 'parametre:gerer',
     ],
   },
   recrutement: {
@@ -68,4 +69,5 @@ export const MENU: EntreeMenu[] = [
   { href: '/missions', libelle: 'Missions', droit: 'mission:lire' },
   { href: '/journal', libelle: 'Journal', droit: 'journal:lire' },
   { href: '/comptes', libelle: 'Comptes', droit: 'compte:gerer' },
+  { href: '/parametres/score', libelle: 'Paramètres', droit: 'parametre:gerer' },
 ];

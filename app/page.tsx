@@ -3,13 +3,18 @@ import { exiger } from '@/lib/auth/session';
 import { requete, une } from '@/lib/db';
 import { afficherTelephone } from '@/lib/intervenants/regles';
 import { CATEGORIES_MISSIONS } from '@/lib/referentiel';
+import { formaterFCFA } from '@/lib/clients/regles';
+import { aujourdhuiBenin, DELAI_PAIEMENT, libelleDuree, RETARD_IMPORTANT_JOURS } from '@/lib/finances/regles';
+import { facturesEnRetard, syntheseFactures, synthesePaiements } from '@/lib/finances/donnees';
 
 export const metadata = { title: 'Tableau de bord' };
 
 export default async function TableauDeBord() {
-  await exiger('tableau:lire');
+  const ctx = await exiger('tableau:lire');
+  const finances = ctx.peut('finance:lire');
+  const jour = aujourdhuiBenin();
 
-  const [chiffres, aVerifier, villes, categories] = await Promise.all([
+  const [chiffres, aVerifier, villes, categories, paie, tresoreries, retards] = await Promise.all([
     une<{ inscrits: number; verifies: number; actifs: number; en_attente: number; semaine: number; clients: number; prospects: number; briefs: number; missions: number; en_cours: number; presence: number | null; rejet: number | null; incidents: number }>(
       `SELECT count(*)::int AS inscrits,
               count(*) FILTER (WHERE statut IN ('verifie', 'actif'))::int AS verifies,
@@ -38,7 +43,11 @@ export default async function TableauDeBord() {
       `SELECT c AS code, count(*)::int AS n FROM intervenant, unnest(categories_missions) c
         WHERE statut NOT IN ('inactif') GROUP BY c`,
     ),
+    finances ? synthesePaiements() : null,
+    finances ? syntheseFactures(jour) : [],
+    finances ? facturesEnRetard(jour, 100) : [],
   ]);
+  const echu = tresoreries.reduce((t, x) => t + x.echu, 0);
   const c = chiffres!;
   const maxVille = Math.max(1, ...villes.map((v) => v.n));
   const maxCat = Math.max(1, ...categories.map((v) => v.n));
@@ -58,6 +67,26 @@ export default async function TableauDeBord() {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Indicateur libelle="Taux de présence" valeur={c.presence === null ? "-" : `${Math.round(c.presence * 100)} %`} cible="95 % et plus" detail="titulaires pointés" />
         <Indicateur libelle="Données rejetées" valeur={c.rejet === null ? "-" : `${Math.round(c.rejet * 1000) / 10} %`} cible="moins de 5 %" detail={`${c.incidents} incident(s) ouvert(s)`} />
+        {paie && (
+          <Indicateur
+            libelle="Paiement des intervenants"
+            valeur={paie.delai_median === null ? '-' : libelleDuree(Math.round(paie.delai_median))}
+            cible={`${DELAI_PAIEMENT.cible} à ${DELAI_PAIEMENT.limite} h`}
+            detail={`délai médian · ${paie.a_payer} à verser${paie.en_retard ? `, dont ${paie.en_retard} en retard` : ''}`}
+            lien="/finances/paiements"
+            alerte={paie.en_retard > 0}
+          />
+        )}
+        {finances && (
+          <Indicateur
+            libelle="Factures échues"
+            valeur={formaterFCFA(echu)}
+            cible="aucun retard important"
+            detail={`${retards.length} en retard de plus de ${RETARD_IMPORTANT_JOURS} jours`}
+            lien="/finances/factures?filtre=echues"
+            alerte={retards.length > 0}
+          />
+        )}
       </div>
 
       <div className="grid gap-5 lg:grid-cols-3">
@@ -110,16 +139,17 @@ function jours(d: Date) {
   return n === 0 ? 'moins d’un jour' : `${n} jour${n > 1 ? 's' : ''}`;
 }
 
-function Indicateur({ libelle, valeur, cible, detail }: { libelle: string; valeur: number | string; cible: string; detail: string }) {
-  return (
-    <div className="carte p-4">
+function Indicateur({ libelle, valeur, cible, detail, lien, alerte }: { libelle: string; valeur: number | string; cible: string; detail: string; lien?: string; alerte?: boolean }) {
+  const contenu = (
+    <>
       <div className="text-xs font-medium uppercase tracking-wide text-encre-douce">{libelle}</div>
-      <div className="mt-1 text-3xl font-bold tabular-nums">{valeur}</div>
+      <div className={`mt-1 text-3xl font-bold tabular-nums ${alerte ? 'text-danger' : ''}`}>{valeur}</div>
       <div className="mt-1 text-xs text-encre-douce">
         {detail} · cible 12 mois : {cible}
       </div>
-    </div>
+    </>
   );
+  return lien ? <Link href={lien} className="carte block p-4 hover:border-marque">{contenu}</Link> : <div className="carte p-4">{contenu}</div>;
 }
 
 function Barres({ donnees, max }: { donnees: { libelle: string; n: number }[]; max: number }) {

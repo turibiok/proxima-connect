@@ -33,7 +33,7 @@ export const ETAPES: { code: Exclude<StatutMission, 'annulee'>; libelle: string;
   { code: 'preuves_collectees', libelle: 'Preuves collectées' },
   { code: 'controlee', libelle: 'Contrôlée' },
   { code: 'rapport_transmis', libelle: 'Rapport transmis', module: '5.7 Reporting' },
-  { code: 'payee', libelle: 'Payée', module: '5.6 Paiements' },
+  { code: 'payee', libelle: 'Payée' },
 ];
 
 export const LIBELLES_STATUT_MISSION: Record<StatutMission, string> = {
@@ -52,6 +52,15 @@ export interface EtatMission {
   presencesManquantes: number;
   /** Etat des preuves et incidents (module 5.4). */
   bilan?: Bilan;
+  /** Paiements et factures de la mission (module 5.6). */
+  finances?: {
+    /** Paiements d'intervenants a payer ou en litige. */
+    paiementsOuverts: number;
+    /** Factures (hors acomptes) emises et non annulees. */
+    factures: number;
+    /** Factures et acomptes non annules, pas encore soldes. */
+    nonSoldees: number;
+  };
 }
 
 /**
@@ -84,6 +93,15 @@ export function refusTransition(de: StatutMission, vers: StatutMission, e: EtatM
         : `Notez la présence de chaque intervenant engagé (${e.presencesManquantes} manquante${e.presencesManquantes > 1 ? 's' : ''}).`;
     case 'controlee': {
       const restes = restesAControler(e.bilan ?? { validees: 0, enAttente: 0, rejetees: 0, incidentsBloquants: 0 });
+      return restes.length ? restes.join(' ') : null;
+    }
+    case 'payee': {
+      // parcours, etape 14 : les intervenants sont payes et la facture client est soldee
+      const fi = e.finances ?? { paiementsOuverts: 0, factures: 0, nonSoldees: 0 };
+      const restes: string[] = [];
+      if (fi.paiementsOuverts) restes.push(`${fi.paiementsOuverts} paiement${fi.paiementsOuverts > 1 ? 's' : ''} d’intervenant à régler.`);
+      if (!fi.factures) restes.push('Émettez la facture du client.');
+      else if (fi.nonSoldees) restes.push(`${fi.nonSoldees} facture${fi.nonSoldees > 1 ? 's' : ''} du client à encaisser.`);
       return restes.length ? restes.join(' ') : null;
     }
     default:

@@ -1,14 +1,26 @@
 import { STATUTS_PROFIL, type StatutProfil } from '@/lib/referentiel';
 import { STATUTS_BRIEF, STATUTS_COMMERCIAUX, type StatutBrief, type StatutCommercial } from '@/lib/clients/regles';
 import { LIBELLES_STATUT_MISSION, type StatutMission } from '@/lib/missions/regles';
+import { STATUTS_FACTURE, STATUTS_PAIEMENT, type StatutFacture, type StatutPaiement } from '@/lib/finances/regles';
 
 const TONS = {
   neutre: 'bg-papier text-encre-douce ring-1 ring-trait',
   info: 'bg-marque-pale text-marque-fonce',
   ok: 'bg-ok-pale text-ok',
   alerte: 'bg-alerte-pale text-alerte',
+  danger: 'bg-danger-pale text-danger',
   eteint: 'bg-trait/60 text-encre-douce',
 };
+
+export function PucePaiement({ statut }: { statut: StatutPaiement }) {
+  const s = STATUTS_PAIEMENT[statut];
+  return <span className={`puce ${TONS[s.ton]}`}>{s.libelle}</span>;
+}
+
+export function PuceFacture({ statut }: { statut: StatutFacture }) {
+  const s = STATUTS_FACTURE[statut];
+  return <span className={`puce ${TONS[s.ton]}`}>{s.libelle}</span>;
+}
 
 export function PuceStatut({ statut }: { statut: StatutProfil }) {
   const s = STATUTS_PROFIL[statut];

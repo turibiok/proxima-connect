@@ -20,7 +20,10 @@ export type Droit =
   | 'tableau:lire'
   | 'journal:lire'
   | 'compte:gerer'
-  | 'parametre:gerer'; // ponderation du score et autres reglages
+  | 'parametre:gerer' // ponderation du score et autres reglages
+  | 'finance:lire' // paiements, factures, tresorerie
+  | 'facture:gerer' // emettre, encaisser, annuler les factures et acomptes
+  | 'paiement:gerer'; // payer les intervenants, traiter les litiges
 
 export const ROLES: Record<Role, { libelle: string; droits: Droit[] }> = {
   admin: {
@@ -29,6 +32,7 @@ export const ROLES: Record<Role, { libelle: string; droits: Droit[] }> = {
       'profil:lire', 'profil:sensible', 'profil:modifier', 'profil:verifier',
       'client:lire', 'client:modifier', 'mission:lire', 'mission:modifier',
       'tableau:lire', 'journal:lire', 'compte:gerer', 'parametre:gerer',
+      'finance:lire', 'facture:gerer', 'paiement:gerer',
     ],
   },
   recrutement: {
@@ -37,15 +41,17 @@ export const ROLES: Record<Role, { libelle: string; droits: Droit[] }> = {
   },
   mission: {
     libelle: 'Chargé(e) de mission',
-    droits: ['profil:lire', 'client:lire', 'mission:lire', 'mission:modifier', 'tableau:lire'],
+    // voit si l'equipe a ete payee (les intervenants l'appellent), sans payer
+    droits: ['profil:lire', 'client:lire', 'mission:lire', 'mission:modifier', 'tableau:lire', 'finance:lire'],
   },
   commercial: {
     libelle: 'Commercial',
-    droits: ['profil:lire', 'client:lire', 'client:modifier', 'mission:lire', 'tableau:lire'],
+    // cahier des charges, section 4 : « generer un devis/facture »
+    droits: ['profil:lire', 'client:lire', 'client:modifier', 'mission:lire', 'tableau:lire', 'finance:lire', 'facture:gerer'],
   },
   direction: {
     libelle: 'Direction',
-    droits: ['profil:lire', 'profil:sensible', 'client:lire', 'mission:lire', 'tableau:lire', 'journal:lire'],
+    droits: ['profil:lire', 'profil:sensible', 'client:lire', 'mission:lire', 'tableau:lire', 'journal:lire', 'finance:lire'],
   },
 };
 
@@ -67,6 +73,7 @@ export const MENU: EntreeMenu[] = [
   { href: '/clients', libelle: 'Clients', droit: 'client:lire' },
   { href: '/briefs', libelle: 'Briefs', droit: 'client:lire' },
   { href: '/missions', libelle: 'Missions', droit: 'mission:lire' },
+  { href: '/finances', libelle: 'Finances', droit: 'finance:lire' },
   { href: '/journal', libelle: 'Journal', droit: 'journal:lire' },
   { href: '/comptes', libelle: 'Comptes', droit: 'compte:gerer' },
   { href: '/parametres/score', libelle: 'Paramètres', droit: 'parametre:gerer' },

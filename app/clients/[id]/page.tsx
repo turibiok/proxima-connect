@@ -7,7 +7,8 @@ import { date, dateHeure, periode } from '@/lib/format';
 import { afficherTelephone } from '@/lib/intervenants/regles';
 import { formaterFCFA, situationCredit, STATUTS_COMMERCIAUX, type StatutBrief, type StatutCommercial } from '@/lib/clients/regles';
 import { libelleCategorie } from '@/lib/referentiel';
-import { PuceBrief, PuceCommerciale } from '@/components/Statut';
+import { PuceBrief, PuceCommerciale, PuceFacture } from '@/components/Statut';
+import { aujourdhuiBenin, situationFacture, TYPES_FACTURE, type StatutFacture, type TypeFacture } from '@/lib/finances/regles';
 import { ChoixStatutCommercial } from './StatutCommercial';
 
 export const metadata = { title: 'Fiche client' };
@@ -20,7 +21,7 @@ export default async function FicheClient({ params }: { params: Promise<{ id: st
   const c = await une<Record<string, any>>('SELECT * FROM client WHERE id = $1', [id]);
   if (!c) notFound();
 
-  const [briefs, missions, factures, historique] = await Promise.all([
+  const [briefs, missions, factures, historique, listeFactures] = await Promise.all([
     requete<{ id: string; objectif: string; categorie: string | null; type_mission: string | null; nb_profils: number | null; date_debut: string | null; date_fin: string | null; budget_fcfa: number | null; statut: StatutBrief; recu_le: Date }>(
       `SELECT id, objectif, categorie, type_mission, nb_profils, date_debut, date_fin, budget_fcfa, statut, recu_le
          FROM brief WHERE client_id = $1 ORDER BY (statut = 'recu') DESC, recu_le DESC`,
@@ -44,7 +45,15 @@ export default async function FicheClient({ params }: { params: Promise<{ id: st
         ORDER BY j.cree_le DESC LIMIT 20`,
       [id],
     ),
+    ctx.peut('finance:lire')
+      ? requete<{ id: string; numero: string; type: TypeFacture; objet: string | null; montant_fcfa: number; montant_regle_fcfa: number; emise_le: string; echeance_le: string | null; statut: StatutFacture }>(
+          `SELECT id, numero, type, objet, montant_fcfa, montant_regle_fcfa, emise_le, echeance_le, statut
+             FROM facture WHERE client_id = $1 AND type <> 'devis' ORDER BY emise_le DESC, numero DESC LIMIT 30`,
+          [id],
+        )
+      : [],
   ]);
+  const jour = aujourdhuiBenin();
 
   const credit = situationCredit(factures?.encours ?? 0, c.limite_credit_fcfa);
   const modifiable = ctx.peut('client:modifier');
@@ -124,6 +133,36 @@ export default async function FicheClient({ params }: { params: Promise<{ id: st
             )}
           </Bloc>
 
+          {ctx.peut('finance:lire') && (
+            <Bloc
+              titre={`Factures et acomptes (${listeFactures.length})`}
+              action={ctx.peut('facture:gerer') ? <Link href={`/finances/factures/nouvelle?client=${id}`} className="text-sm text-marque hover:underline">+ Émettre</Link> : null}
+            >
+              {listeFactures.length === 0 ? (
+                <p className="text-sm text-encre-douce">Aucune facture émise pour ce client.</p>
+              ) : (
+                <ul className="divide-y divide-trait text-sm">
+                  {listeFactures.map((f) => {
+                    const s = situationFacture(f, jour);
+                    return (
+                      <li key={f.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                        <span className="min-w-0">
+                          <Link href={`/finances/factures/${f.id}`} className="font-mono text-marque hover:underline">{f.numero}</Link>{' '}
+                          <span className="text-xs text-encre-douce">{TYPES_FACTURE[f.type].libelle} du {date(f.emise_le)}{f.objet && ` · ${f.objet}`}</span>
+                        </span>
+                        <span className="flex items-center gap-3">
+                          <span className="tabular-nums">{formaterFCFA(f.montant_fcfa)}</span>
+                          {s.joursRetard > 0 && <span className={`text-xs ${s.niveau === 'retard_important' ? 'text-danger' : 'text-alerte'}`}>{s.joursRetard} j de retard</span>}
+                          <PuceFacture statut={f.statut} />
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </Bloc>
+          )}
+
           {c.notes && (
             <Bloc titre="Notes internes">
               <p className="whitespace-pre-line text-sm">{c.notes}</p>
@@ -182,6 +221,8 @@ export default async function FicheClient({ params }: { params: Promise<{ id: st
                     <div className="font-medium">
                       {LIBELLES_ACTIONS[h.action] ?? h.action}
                       {h.details?.vers && h.action === 'client_statut' && ` : ${STATUTS_COMMERCIAUX[h.details.vers as StatutCommercial]?.libelle}`}
+                      {h.details?.numero && ` : ${h.details.numero}`}
+                      {h.action === 'facture_reglement' && h.details?.montant != null && ` (${formaterFCFA(h.details.montant)})`}
                     </div>
                     <div className="text-xs text-encre-douce">{dateHeure(h.cree_le)} · {h.auteur ?? '-'}</div>
                   </li>

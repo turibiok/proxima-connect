@@ -7,6 +7,7 @@ import { transaction, une } from '@/lib/db';
 import { exigerAction, type Contexte } from '@/lib/auth/session';
 import { consigner } from '@/lib/journal';
 import { recalculerScore } from '@/lib/score/calcul';
+import { etatFinancier, genererPaiements, retirerPaiements } from '@/lib/finances/mission';
 import {
   equipe,
   lireMission,
@@ -138,8 +139,12 @@ export async function changerStatut(id: string, _: string | null, f: FormData): 
         briefing: !!m.briefing_le,
         presencesManquantes: e.presencesManquantes,
         bilan,
+        finances: vers === 'payee' ? await etatFinancier(c, id) : undefined,
       }, motif);
       if (refus) throw new Error(refus);
+      // module 5.6 : la validation fait naitre les paiements dus aux intervenants
+      if (vers === 'controlee') await genererPaiements(c, id, ctx.utilisateur.id);
+      if (m.statut === 'controlee' && vers === 'preuves_collectees') await retirerPaiements(c, id, ctx.utilisateur.id, m.reference);
       await c.query(
         `UPDATE mission SET statut = $2, statut_change_le = now(), maj_le = now(),
                 motif_annulation = CASE WHEN $2 = 'annulee' THEN $3 ELSE motif_annulation END
@@ -155,6 +160,7 @@ export async function changerStatut(id: string, _: string | null, f: FormData): 
     return e instanceof Error ? e.message : 'Erreur inattendue.';
   }
   rafraichir(id);
+  revalidatePath('/finances', 'layout');
   return null;
 }
 

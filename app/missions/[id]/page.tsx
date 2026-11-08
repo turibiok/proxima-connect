@@ -20,7 +20,9 @@ import {
 } from '@/lib/missions/regles';
 import { libelleCategorie } from '@/lib/referentiel';
 import { tauxRejet } from '@/lib/preuves/regles';
-import { PuceMission } from '@/components/Statut';
+import { PuceFacture, PuceMission, PucePaiement } from '@/components/Statut';
+import { SQL_ETAT_FINANCIER } from '@/lib/finances/mission';
+import { aujourdhuiBenin, delaiPaiement, libelleDuree, situationFacture, TYPES_FACTURE, type StatutFacture, type StatutPaiement, type TypeFacture } from '@/lib/finances/regles';
 import { LigneEquipe, type VueLigne } from './Equipe';
 import { Briefing, ChangementEtape } from './Pilotage';
 
@@ -36,7 +38,8 @@ export default async function Mission({ params }: { params: Promise<{ id: string
   const m = await chargerMission(id);
   if (!m) notFound();
 
-  const [lignes, historique, [bilan]] = await Promise.all([
+  const finances = ctx.peut('finance:lire');
+  const [lignes, historique, [bilan], paiements, factures, [etatFin]] = await Promise.all([
     chargerEquipe(id),
     requete<{ action: string; details: any; cree_le: Date; auteur: string | null }>(
       `SELECT j.action, j.details, j.cree_le, u.nom_complet AS auteur
@@ -53,6 +56,21 @@ export default async function Mission({ params }: { params: Promise<{ id: string
          FROM preuve p WHERE p.mission_id = $1`,
       [id],
     ),
+    finances
+      ? requete<{ id: string; intervenant_id: string; nom: string; prenoms: string; montant_fcfa: number; statut: StatutPaiement; du_depuis: Date; paye_le: Date | null }>(
+          `SELECT p.id, p.intervenant_id, i.nom, i.prenoms, p.montant_fcfa, p.statut, p.du_depuis, p.paye_le
+             FROM paiement_intervenant p JOIN intervenant i ON i.id = p.intervenant_id WHERE p.mission_id = $1 ORDER BY i.nom`,
+          [id],
+        )
+      : [],
+    finances
+      ? requete<{ id: string; numero: string; type: TypeFacture; montant_fcfa: number; montant_regle_fcfa: number; echeance_le: string | null; statut: StatutFacture }>(
+          `SELECT id, numero, type, montant_fcfa, montant_regle_fcfa, echeance_le, statut FROM facture WHERE mission_id = $1 ORDER BY emise_le, numero`,
+          [id],
+        )
+      : [],
+    // l'etape « payee » depend des paiements et des factures, quel que soit le role qui consulte
+    requete<{ paiementsOuverts: number; factures: number; nonSoldees: number }>(SQL_ETAT_FINANCIER, [id]),
   ]);
 
   const statut = m.statut as StatutMission;
@@ -62,7 +80,7 @@ export default async function Mission({ params }: { params: Promise<{ id: string
   const composition = ['selection', 'preparation', 'execution'].includes(statut);
   const pointage = ['execution', 'preuves_collectees'].includes(statut);
   const { suivante, precedente } = etapesVoisines(statut);
-  const etatMission = { engages: e.engages.length, requis: m.nb_profils_requis, briefing: !!m.briefing_le, presencesManquantes: e.presencesManquantes, bilan };
+  const etatMission = { engages: e.engages.length, requis: m.nb_profils_requis, briefing: !!m.briefing_le, presencesManquantes: e.presencesManquantes, bilan, finances: etatFin };
   const blocage = suivante ? refusTransition(statut, suivante, etatMission) : null;
   const eco = economie(m.budget_fcfa, m.remuneration_agent_fcfa, m.nb_profils_requis);
 
@@ -235,6 +253,65 @@ export default async function Mission({ params }: { params: Promise<{ id: string
             </section>
           )}
 
+          {finances && (paiements.length > 0 || factures.length > 0 || ['controlee', 'rapport_transmis', 'payee'].includes(statut)) && (
+            <section className="carte p-5">
+              <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="font-bold">Paiements et facturation</h2>
+                {ctx.peut('facture:gerer') && statut !== 'annulee' && (
+                  <Link href={`/finances/factures/nouvelle?mission=${id}`} className="btn px-3 py-1.5 text-sm">Facturer le client</Link>
+                )}
+              </div>
+              <h3 className="mt-2 text-xs font-bold uppercase tracking-wide text-encre-douce">Intervenants</h3>
+              {paiements.length === 0 ? (
+                <p className="py-2 text-sm text-encre-douce">Les paiements naissent à l’étape « Contrôlée », un par intervenant pointé présent.</p>
+              ) : (
+                <ul className="divide-y divide-trait text-sm">
+                  {paiements.map((p) => {
+                    const d = delaiPaiement(p.du_depuis, p.paye_le);
+                    return (
+                      <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                        <Link href={`/intervenants/${p.intervenant_id}`} className="hover:underline">{p.nom} {p.prenoms}</Link>
+                        <span className="flex items-center gap-3">
+                          <span className="tabular-nums">{formaterFCFA(p.montant_fcfa)}</span>
+                          <span className={`text-xs ${d.niveau === 'retard' ? 'text-danger' : d.niveau === 'attention' ? 'text-alerte' : 'text-encre-douce'}`}>
+                            {p.statut === 'paye' ? `payé en ${libelleDuree(d.heures)}` : `depuis ${libelleDuree(d.heures)}`}
+                          </span>
+                          <PucePaiement statut={p.statut} />
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+              {paiements.some((p) => p.statut !== 'paye') && (
+                <Link href="/finances/paiements" className="text-xs text-marque hover:underline">Verser les paiements →</Link>
+              )}
+              <h3 className="mt-4 text-xs font-bold uppercase tracking-wide text-encre-douce">Client</h3>
+              {factures.length === 0 ? (
+                <p className="py-2 text-sm text-encre-douce">Aucune facture ni acompte émis pour cette mission.</p>
+              ) : (
+                <ul className="divide-y divide-trait text-sm">
+                  {factures.map((f) => {
+                    const s = situationFacture(f, aujourdhuiBenin());
+                    return (
+                      <li key={f.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                        <span>
+                          <Link href={`/finances/factures/${f.id}`} className="font-mono text-marque hover:underline">{f.numero}</Link>{' '}
+                          <span className="text-xs text-encre-douce">{TYPES_FACTURE[f.type].libelle}</span>
+                        </span>
+                        <span className="flex items-center gap-3">
+                          <span className="tabular-nums">{formaterFCFA(f.montant_fcfa)}</span>
+                          {s.joursRetard > 0 && <span className="text-xs text-danger">{s.joursRetard} j de retard</span>}
+                          <PuceFacture statut={f.statut} />
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
+          )}
+
           {!close && (composition || m.briefing_le) && (
             <section className="carte p-5">
               <h2 className="mb-1 font-bold">Briefing et préparation</h2>
@@ -307,6 +384,8 @@ export default async function Mission({ params }: { params: Promise<{ id: string
                     {h.action === 'affectation_ajout' && ` (${h.details?.nombre} ${h.details?.role === 'remplacant' ? 'en réserve' : 'titulaire(s)'})`}
                     {h.action === 'preuve_statut' && ({ validee: ' : validée', rejetee: ' : rejetée', en_attente: ' : remise à contrôler' } as Record<string, string>)[h.details?.statut]}
                     {h.action === 'preuve_ajout' && h.details?.type && ` (${h.details.type.replace('_', '-')})`}
+                    {h.action === 'paiements_generes' && ` (${h.details?.nombre}, ${formaterFCFA(h.details?.total)})`}
+                    {h.action === 'paiement_verse' && h.details?.montant != null && ` (${formaterFCFA(h.details.montant)})`}
                   </div>
                   <div className="text-xs text-encre-douce">
                     {dateHeure(h.cree_le)} · {h.auteur ?? '-'}

@@ -175,6 +175,31 @@ export const JEUX: Record<string, JeuExport> = {
       { libelle: 'Référence de transaction', valeur: (l) => l.reference_transaction },
     ],
   },
+  geopoints: {
+    libelle: 'Points relevés (géopoints)',
+    description: 'Points GPS validés des missions, avec la commune, la mission et la date : à ouvrir dans QGIS ou un tableur. Sans nom d’intervenant.',
+    droit: 'mission:lire',
+    sql: `SELECT x.latitude, x.longitude, x.precision_m, x.type, coalesce(x.realisee_le, x.saisie_le) AS quand, x.description,
+                 m.reference, m.titre, m.categorie, m.commune, m.departement, c.raison_sociale
+            FROM preuve x JOIN mission m ON m.id = x.mission_id JOIN client c ON c.id = m.client_id
+           WHERE x.statut = 'validee' AND x.latitude IS NOT NULL AND x.longitude IS NOT NULL AND m.statut <> 'annulee'
+           ORDER BY quand DESC`,
+    colonnes: [
+      // coordonnees en notation decimale a point : lues telles quelles par les logiciels de cartographie
+      { libelle: 'latitude', valeur: (l) => String(l.latitude) },
+      { libelle: 'longitude', valeur: (l) => String(l.longitude) },
+      { libelle: 'Précision (m)', valeur: (l) => l.precision_m },
+      { libelle: 'Type de preuve', valeur: (l) => l.type },
+      { libelle: 'Relevé le', valeur: (l) => dateHeure(l.quand) },
+      { libelle: 'Description', valeur: (l) => l.description },
+      { libelle: 'Mission', valeur: (l) => l.reference },
+      { libelle: 'Titre', valeur: (l) => l.titre },
+      { libelle: 'Type de mission', valeur: (l) => libelleCategorie(l.categorie) },
+      { libelle: 'Commune', valeur: (l) => l.commune },
+      { libelle: 'Département', valeur: (l) => l.departement },
+      { libelle: 'Client', valeur: (l) => l.raison_sociale },
+    ],
+  },
   factures: {
     libelle: 'Factures et acomptes',
     description: 'Numéro, client, mission, trésorerie, montants réglés et restants, échéances et statut.',

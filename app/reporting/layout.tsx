@@ -9,6 +9,7 @@ export default async function Reporting({ children }: { children: React.ReactNod
         liens={[
           { href: '/reporting', libelle: 'Satisfaction, rentabilité, exports' },
           { href: '/reporting/territoires', libelle: 'Territoires' },
+          { href: '/reporting/observatoire', libelle: 'Observatoire terrain' },
         ]}
       />
       {children}

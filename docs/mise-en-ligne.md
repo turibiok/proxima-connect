@@ -338,7 +338,22 @@ Point de départ retenu (à confirmer) : Littoral, Atlantique et Ouémé ouverts
 
 ---
 
-## 13. Coûts récurrents indicatifs
+## 13. Phase 6 : observatoire terrain
+
+Branche `phase-6` (après la Phase 5). Aucune migration : l’observatoire exploite les données déjà collectées.
+
+- **Page Reporting → Observatoire terrain**, filtrable par période, type de mission et client :
+  - missions réalisées et communes couvertes, points GPS relevés, lignes de données importées ;
+  - fiabilité : taux de données rejetées, contre-appels confirmés, présence, satisfaction des clients ;
+  - **carte des relevés** dessinée dans le programme (contour simplifié du Bénin et villes repères, sans fond de carte en ligne : rien ne sort du programme), vue « zone des relevés » ou « Bénin entier » ;
+  - activité mois par mois sur 12 mois, synthèse par type de mission et par département.
+- **Export des points relevés** (CSV) : coordonnées, commune, département, mission, client, sans nom d’intervenant, à ouvrir dans QGIS ou un tableur. C’est la matière première des futurs services d’analyse vendus aux clients (observatoire de prix, couverture de points de vente, cartographie).
+
+Pistes pour aller plus loin, une fois le volume de données suffisant : fiches de collecte structurées (questions typées plutôt que fichiers importés), indicateurs comparés dans le temps par zone, accès des clients à leurs propres analyses depuis l’espace client.
+
+---
+
+## 14. Coûts récurrents indicatifs
 
 Tarifs publics à confirmer au moment de la souscription.
 

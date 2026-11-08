@@ -2,7 +2,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { executerTaches } from '@/lib/automatisation/taches';
 
 /**
- * Point d'entree du planificateur (Vercel Cron, chaque heure : vercel.json).
+ * Point d'entree du planificateur (Vercel Cron, frequence reglee dans vercel.json).
  * Vercel envoie « Authorization: Bearer <CRON_SECRET> » quand la variable
  * CRON_SECRET est definie ; sans elle, la route refuse tout.
  */

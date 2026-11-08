@@ -69,7 +69,7 @@ export default async function Automatisation() {
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="font-bold">Tâches automatiques</h2>
           <span className={planificateur ? 'text-ok' : 'text-alerte'}>
-            {planificateur ? 'Planificateur configuré : toutes les heures' : 'Planificateur non configuré (variable CRON_SECRET absente)'}
+            {planificateur ? 'Planificateur configuré : chaque jour à 7 h (fréquence réglée dans vercel.json)' : 'Planificateur non configuré (variable CRON_SECRET absente)'}
           </span>
         </div>
         <p className="text-encre-douce">

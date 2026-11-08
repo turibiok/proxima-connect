@@ -282,7 +282,8 @@ Twilio a été retenu comme premier fournisseur : il couvre le SMS et WhatsApp a
 ### Activer le planificateur
 
 1. Définir `CRON_SECRET` dans Vercel (une longue valeur aléatoire). Sans elle, `/api/taches` refuse toute requête.
-2. La fréquence horaire est déclarée dans `vercel.json`. L’offre *Hobby* de Vercel limite les tâches planifiées à une par jour : l’offre **Pro** (déjà nécessaire pour un usage commercial) permet l’exécution horaire.
+2. La fréquence est déclarée dans `vercel.json` : **une fois par jour, à 7 h (heure du Bénin)**, ce que toutes les offres Vercel acceptent (l’offre gratuite *Hobby* refuse le déploiement si une tâche est plus fréquente). Les rappels de la veille et les confirmations de paiement en sont couverts ; une proposition expire au plus tard le lendemain matin. Avec l’offre **Pro** (déjà nécessaire pour un usage commercial), passer `"schedule"` à `"0 * * * *"` pour une exécution chaque heure : relances et remplacements suivent alors le délai de réponse à l’heure près.
+3. Entre deux passages, l’administrateur peut lancer les tâches à la main : *Paramètres → Automatisation → Lancer les tâches maintenant*.
 
 ---
 

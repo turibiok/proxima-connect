@@ -19,7 +19,7 @@ export interface BilanTaches {
 }
 
 /**
- * Taches automatiques (phase 3), lancees chaque heure par le planificateur
+ * Taches automatiques (phase 3), lancees par le planificateur (frequence dans vercel.json)
  * ou a la main depuis Parametres. Chaque tache est independante : l'echec
  * de l'une n'empeche pas les autres. Sans fournisseur d'envoi, seules les
  * taches sans message tournent (aucun message n'est marque envoye a tort).

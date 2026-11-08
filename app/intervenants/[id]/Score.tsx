@@ -45,7 +45,20 @@ interface Evaluation {
  * a evolue, et chaque evaluation qui l'a fait varier, avec sa contestation
  * eventuelle (cahier des charges 5.5 : transparence et contestation).
  */
-export async function SectionScore({ intervenantId, score, ctx }: { intervenantId: string; score: number | null; ctx: Contexte }) {
+export async function SectionScore({
+  intervenantId,
+  score,
+  ctx,
+  vue = 'equipe',
+}: {
+  intervenantId: string;
+  score: number | null;
+  /** null dans l'espace intervenant : lecture seule */
+  ctx: Contexte | null;
+  /** « intervenant » : sans nom d'evaluateur ni lien vers le back-office */
+  vue?: 'equipe' | 'intervenant';
+}) {
+  const equipe = vue === 'equipe';
   const [criteres, evaluations, presence, historique] = await Promise.all([
     requete<{ code: CodeCritere; poids: number; ordre: number }>('SELECT code, poids, ordre FROM critere_score ORDER BY ordre'),
     requete<Evaluation>(
@@ -158,6 +171,12 @@ export async function SectionScore({ intervenantId, score, ctx }: { intervenantI
       )}
 
       <h3 className="mb-2 text-sm font-bold">Évaluations ({evaluations.length})</h3>
+      {!equipe && (
+        <p className="mb-3 rounded-lg bg-marque-pale px-3 py-2 text-xs text-marque-fonce">
+          Vous n’êtes pas d’accord avec une évaluation ? Contactez l’équipe PROXIMA en expliquant pourquoi. Votre contestation sera
+          examinée par une autre personne que l’auteur de l’évaluation, et la décision vous sera expliquée.
+        </p>
+      )}
       {evaluations.length === 0 ? (
         <p className="text-sm text-encre-douce">Aucune évaluation pour le moment.</p>
       ) : (
@@ -167,10 +186,14 @@ export async function SectionScore({ intervenantId, score, ctx }: { intervenantI
             return (
               <li key={e.id} className={`py-3 ${e.contestation_issue === 'annulee' ? 'opacity-60' : ''}`}>
                 <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2 text-sm">
-                  <Link href={`/missions/${e.mission_id}`} className="font-medium hover:underline">
-                    <span className="font-mono text-xs">{e.reference}</span> {e.titre}
-                  </Link>
-                  <span className="text-xs text-encre-douce">{date(e.evaluee_le)} · {e.evaluateur ?? '-'}</span>
+                  {equipe ? (
+                    <Link href={`/missions/${e.mission_id}`} className="font-medium hover:underline">
+                      <span className="font-mono text-xs">{e.reference}</span> {e.titre}
+                    </Link>
+                  ) : (
+                    <span className="font-medium">{e.titre}</span>
+                  )}
+                  <span className="text-xs text-encre-douce">{date(e.evaluee_le)}{equipe && ` · ${e.evaluateur ?? '-'}`}</span>
                 </div>
                 <ResumeNotes notes={e.notes} />
                 {e.commentaire && <p className="mt-1 whitespace-pre-line text-sm">« {e.commentaire} »</p>}
@@ -180,15 +203,15 @@ export async function SectionScore({ intervenantId, score, ctx }: { intervenantI
                     <strong>Contestée le {date(e.contestee_le)}</strong> : {e.contestation_motif}
                     {e.contestation_issue && (
                       <p className="mt-1 text-encre">
-                        <strong>{ISSUES[e.contestation_issue]}</strong> par {e.traitee_par ?? '-'}
+                        <strong>{ISSUES[e.contestation_issue]}</strong>{equipe && ` par ${e.traitee_par ?? '-'}`}
                         {e.contestation_traitee_le && ` le ${date(e.contestation_traitee_le)}`} : {e.contestation_explication}
                       </p>
                     )}
                   </div>
                 )}
 
-                {!e.contestee_le && ctx.peut('profil:modifier') && <Contestation evaluationId={e.id} />}
-                {enAttente && ctx.peut('profil:verifier') && (
+                {ctx && !e.contestee_le && ctx.peut('profil:modifier') && <Contestation evaluationId={e.id} />}
+                {ctx && enAttente && ctx.peut('profil:verifier') && (
                   peutTrancher(e, ctx.utilisateur)
                     ? <Traitement evaluationId={e.id} notes={e.notes} />
                     : <p className="mt-2 text-xs text-encre-douce">Vous êtes l’auteur de cette évaluation : une autre personne doit trancher la contestation.</p>

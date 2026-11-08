@@ -64,6 +64,7 @@ test('liens d’envoi : WhatsApp sans le +, SMS compatible Android et iOS', () =
 
 test('saisie : message et echange consigne', () => {
   assert.deepEqual(lireMessage(form({ canal: 'sms', modele: 'rappel', contenu: ' Bonjour ' })), { ok: true, donnees: { canal: 'sms', modele: 'rappel', contenu: 'Bonjour' } });
+  assert.equal(lireMessage(form({ canal: 'sms', modele: 'libre', contenu: 'Ligne 1\r\nLigne 2' })).donnees.contenu, 'Ligne 1\nLigne 2');
   assert.deepEqual(Object.keys(lireMessage(form({ canal: 'pigeon', modele: 'proposition', contenu: '' })).erreurs).sort(), ['canal', 'contenu', 'modele']);
   assert.equal(lireEchange(form({ canal: 'appel', sens: 'entrant', contenu: 'Demande quand il sera payé' })).ok, true);
   assert.ok(lireEchange(form({ canal: 'appel', sens: 'x', contenu: 'ok ok' })).erreurs.sens);

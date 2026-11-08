@@ -5,6 +5,7 @@ import { une, requete } from '@/lib/db';
 import { exigerAction, type Contexte } from '@/lib/auth/session';
 import { consigner } from '@/lib/journal';
 import { lireEchange, lireMessage, MODELES, versSms } from './regles';
+import { masquerLien } from '@/lib/espace/regles';
 
 export type EtatEnvoi = { erreurs?: Record<string, string>; ok?: string } | null;
 
@@ -62,7 +63,8 @@ export async function enregistrerEnvoi(
   }
 
   const numero = r.donnees.canal === 'whatsapp' ? (i.whatsapp ?? i.telephone) : i.telephone;
-  const contenu = r.donnees.canal === 'sms' ? versSms(r.donnees.contenu) : r.donnees.contenu;
+  // le jeton d'un lien d'acces n'est jamais conserve en clair, meme dans l'historique
+  const contenu = masquerLien(r.donnees.canal === 'sms' ? versSms(r.donnees.contenu) : r.donnees.contenu);
   await requete(
     `INSERT INTO communication (intervenant_id, mission_id, paiement_id, canal, objet, contenu, statut, modele, sens, mode, numero, auteur_id)
      VALUES ($1, $2, $3, $4, $5, $6, 'envoye', $7, 'sortant', 'manuel', $8, $9)`,

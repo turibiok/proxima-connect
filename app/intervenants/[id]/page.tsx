@@ -27,6 +27,9 @@ import { PuceStatut } from '@/components/Statut';
 import { ChangementStatut, Controles } from './Verification';
 import { SectionScore } from './Score';
 import { ConsignerEchange } from './Echange';
+import { GestionEspace } from './Espace';
+import { etatEspace } from '@/lib/espace/actions';
+import { etatLien } from '@/lib/espace/regles';
 import { Envoi } from '@/components/Envoi';
 import { HistoriqueCommunications, SQL_COMMUNICATIONS, type LigneCommunication } from '@/components/Communications';
 
@@ -65,7 +68,7 @@ export default async function FicheIntervenant({ params }: { params: Promise<{ i
     if (!recente) await consigner({ utilisateurId: ctx.utilisateur.id, action: 'consultation_sensible', entite: 'intervenant', entiteId: id });
   }
 
-  const [missions, historique, communications] = await Promise.all([
+  const [missions, historique, communications, espace] = await Promise.all([
     requete<{ id: string; reference: string; titre: string; statut: string; role: string; reponse: string; presence: string | null; date_debut: string | null }>(
       `SELECT m.id, m.reference, m.titre, m.statut, a.role, a.reponse, a.presence, m.date_debut
          FROM affectation a JOIN mission m ON m.id = a.mission_id
@@ -80,7 +83,11 @@ export default async function FicheIntervenant({ params }: { params: Promise<{ i
       [id],
     ),
     requete<LigneCommunication>(SQL_COMMUNICATIONS('intervenant'), [id]),
+    etatEspace(id),
   ]);
+  const lienEspace = espace?.dernier_lien
+    ? etatLien({ expire_le: espace.lien_expire!, utilise_le: espace.lien_utilise, revoque_le: espace.lien_revoque, echecs: espace.echecs ?? 0 })
+    : null;
   const ecrire = ctx.peut('mission:modifier') || ctx.peut('profil:modifier');
 
   const maintenant = new Date();
@@ -228,6 +235,26 @@ export default async function FicheIntervenant({ params }: { params: Promise<{ i
             ) : (
               <p className="text-sm text-encre-douce">Données réservées aux rôles habilités.</p>
             )}
+          </Bloc>
+
+          <Bloc titre="Espace intervenant">
+            <p className="mb-3 text-sm">
+              {statut === 'inactif'
+                ? 'Profil inactif : pas d’accès à l’espace.'
+                : espace?.sessions
+                  ? `Connecté sur ${espace.sessions} téléphone${espace.sessions > 1 ? 's' : ''}${espace.derniere_visite ? `, dernière visite le ${dateHeure(espace.derniere_visite)}` : ''}.`
+                  : 'Aucun téléphone connecté.'}
+              {espace?.dernier_lien && (
+                <span className="block text-xs text-encre-douce">
+                  Dernier lien préparé le {dateHeure(espace.dernier_lien)} :{' '}
+                  {{ valide: 'pas encore utilisé', utilise: `utilisé le ${dateHeure(espace.lien_utilise!)}`, expire: 'expiré', revoque: 'annulé' }[lienEspace!]}.
+                </span>
+              )}
+            </p>
+            {statut !== 'inactif' && (ctx.peut('profil:modifier') || ctx.peut('mission:modifier')) && (
+              <GestionEspace intervenantId={id} telephone={p.telephone} whatsapp={p.whatsapp} sessions={espace?.sessions ?? 0} />
+            )}
+            <p className="mt-2 text-xs text-encre-douce">L’intervenant y consulte ses missions, ses paiements, son score et son profil, sans rien pouvoir modifier.</p>
           </Bloc>
 
           <Bloc titre="PROXIMA SCORE">

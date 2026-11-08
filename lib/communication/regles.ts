@@ -25,7 +25,7 @@ export const CANAUX: Record<Canal, string> = {
   email: 'E-mail',
 };
 
-export type Modele = 'proposition' | 'rappel' | 'paiement' | 'libre' | 'echange';
+export type Modele = 'proposition' | 'rappel' | 'paiement' | 'libre' | 'echange' | 'acces';
 
 export const MODELES: Record<Modele, string> = {
   proposition: 'Proposition de mission',
@@ -33,10 +33,11 @@ export const MODELES: Record<Modele, string> = {
   paiement: 'Confirmation de paiement',
   libre: 'Message',
   echange: 'Échange consigné',
+  acces: 'Lien vers l’espace intervenant',
 };
 
 /** Modeles qu'on envoie depuis l'ecran d'envoi (la proposition a son propre circuit, module 5.3). */
-export const MODELES_ENVOI = ['rappel', 'paiement', 'libre'] as const;
+export const MODELES_ENVOI = ['rappel', 'paiement', 'libre', 'acces'] as const;
 export type ModeleEnvoi = (typeof MODELES_ENVOI)[number];
 
 // ------------------------------------------------------------ modeles de messages
@@ -158,7 +159,9 @@ interface FormLike {
 
 type Resultat<T> = { ok: true; donnees: T } | { ok: false; erreurs: Record<string, string> };
 
-const texte = (f: FormLike, k: string, max = 200) => String(f.get(k) ?? '').trim().slice(0, max);
+// L'envoi d'un formulaire convertit les retours a la ligne en CRLF : on les
+// ramene a « \n », sinon chaque ligne compte un caractere de trop dans un SMS.
+const texte = (f: FormLike, k: string, max = 200) => String(f.get(k) ?? '').replace(/\r\n?/g, '\n').trim().slice(0, max);
 
 /** Message envoye depuis l'ecran d'envoi. */
 export function lireMessage(f: FormLike): Resultat<{ canal: CanalEnvoi; modele: ModeleEnvoi; contenu: string }> {

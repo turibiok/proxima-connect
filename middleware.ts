@@ -7,7 +7,8 @@ import { NextResponse, type NextRequest } from 'next/server';
  * droits cote serveur (lib/auth/session.ts).
  */
 
-const PUBLIC = ['/connexion', '/inscription', '/acces-refuse'];
+// /espace : espace des intervenants, avec sa propre session (lib/espace/session.ts)
+const PUBLIC = ['/connexion', '/inscription', '/acces-refuse', '/espace'];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

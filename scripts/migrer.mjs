@@ -6,6 +6,7 @@
  * qui echoue ne laisse pas la base a moitie modifiee.
  *
  *   npm run migrer
+ *   npm run migrer:prod -- --verifier   -> liste ce qui reste a appliquer, sans rien modifier
  */
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -22,6 +23,23 @@ const fichiers = readdirSync(dossier).filter((f) => f.endsWith('.sql')).sort();
 
 const client = new pg.Client({ connectionString: url });
 await client.connect();
+
+// --verifier : lecture seule, rien n'est cree ni modifie
+if (process.argv.includes('--verifier')) {
+  try {
+    await client.query('SET default_transaction_read_only = on');
+    console.log(`Base visee : ${new URL(url).host}`);
+    const existe = (await client.query(`SELECT to_regclass('schema_migrations') IS NOT NULL AS ok`)).rows[0].ok;
+    const deja = new Set(existe ? (await client.query('SELECT nom FROM schema_migrations')).rows.map((r) => r.nom) : []);
+    const reste = fichiers.filter((f) => !deja.has(f));
+    console.log(`Deja appliquees : ${[...deja].sort().join(', ') || 'aucune'}`);
+    console.log(reste.length ? `A appliquer (${reste.length}) : ${reste.join(', ')}` : 'Base deja a jour.');
+  } finally {
+    await client.end();
+  }
+  process.exit(0);
+}
+
 try {
   await client.query(`CREATE TABLE IF NOT EXISTS schema_migrations (
     nom text PRIMARY KEY,

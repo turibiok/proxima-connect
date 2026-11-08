@@ -1,6 +1,6 @@
 # PROXIMA CONNECT : mise en ligne
 
-Ce guide décrit comment publier l'application. **Rien n'est encore publié.** Le code est prêt et vérifié : la construction de production passe et l'application a été testée en local. Les étapes ci-dessous créent les services en ligne.
+Ce guide décrit comment publier l'application. Les sections 1 à 8 couvrent la première mise en ligne (Phase 1) ; la section 9 décrit la mise à jour vers la Phase 2.
 
 ---
 
@@ -168,7 +168,82 @@ Ces points ne relèvent pas du code. Ils conditionnent l'ouverture (cahier des c
 
 ---
 
-## 9. Coûts récurrents indicatifs
+## 9. Mise à jour vers la Phase 2
+
+La Phase 2 est développée sur la branche `phase-2`. Elle ajoute :
+
+| Module | Contenu |
+|---|---|
+| 5.5 PROXIMA SCORE | Évaluation de l’équipe après chaque mission, score calculé et pondérable (page **Paramètres**), historique, contestations |
+| 5.6 Paiements et facturation | Paiements des intervenants (objectif 48 à 72 h), factures et acomptes, règlements, deux trésoreries, alertes de retard et de crédit (menu **Finances**) |
+| 5.7 Reporting | Rapport de mission pour le client (imprimable en PDF), avis du client, rentabilité, exports CSV (menu **Reporting**) |
+| 5.8 Communication | Rappels, confirmations de paiement et messages rédigés par le programme, envoyés depuis le téléphone de l’équipe ; historique des échanges |
+| Espace intervenant | L’intervenant consulte ses missions, ses paiements, son score et son profil, par un lien personnel (adresse `/espace`) |
+
+Aucune nouvelle variable d’environnement n’est nécessaire.
+
+### Ordre des opérations
+
+Les cinq migrations (`006` à `010`) ne font qu’ajouter des tables, des colonnes et des contraintes : le code actuellement en ligne fonctionne avec la base migrée. On migre donc **d’abord** la base, **puis** on publie le code.
+
+1. **Vérifier l’état de la production**, sans rien modifier :
+   ```bash
+   npm run migrer:prod -- --verifier
+   ```
+   Vérifiez que la base visée est bien celle de production (hôte différent de celui de `.env.local`). Le résultat attendu est « A appliquer (5) : 006_score.sql, 007_paiements.sql, 008_rapport.sql, 009_communication.sql, 010_espace_intervenant.sql ».
+2. **Sauvegarder la base** : dans la console Neon, projet de production, *Branches → Create branch*, depuis la branche principale, données actuelles, nom `avant-phase-2`.
+3. **Appliquer les migrations** :
+   ```bash
+   npm run migrer:prod
+   ```
+   Résultat attendu : « 5 migration(s) appliquee(s) ». Chaque migration est appliquée dans sa propre transaction : en cas d’échec, la migration fautive est annulée entièrement et les suivantes ne sont pas tentées.
+4. **Publier le code** : fusionner `phase-2` dans `main` et pousser. Vercel construit et publie automatiquement.
+   ```bash
+   git checkout main
+   git merge --ff-only phase-2
+   git push origin main
+   ```
+5. **Recette** (ci-dessous), puis supprimer les données d’essai créées pendant la recette.
+
+### Recette de la Phase 2
+
+À faire sur la vraie adresse, avec de préférence une mission d’essai sur un client d’essai :
+
+- [ ] Menus **Finances**, **Reporting** et **Paramètres** visibles pour l’administrateur ; un compte « Chargé de mission » ne voit pas **Paramètres** et ne peut pas payer.
+- [ ] **Paramètres** : la pondération du score s’affiche avec les valeurs de départ (15 / 15 / 10 / 15 / 10 / 15 / 10 / 10).
+- [ ] Une mission qui passe à « Contrôlée » crée un paiement « À payer » par intervenant pointé présent.
+- [ ] Un paiement s’enregistre avec sa référence ; la confirmation à l’intervenant s’ouvre dans WhatsApp sur un téléphone.
+- [ ] Une facture reçoit le numéro `FA-<année>-0001` ; un règlement partiel la passe « Réglée en partie ».
+- [ ] Le rapport client s’imprime ou s’enregistre en PDF depuis le navigateur, sans menu ni boutons.
+- [ ] Un export CSV s’ouvre dans Excel avec les accents corrects.
+- [ ] Un lien d’accès à l’espace intervenant, envoyé à votre propre numéro sur un profil d’essai, s’ouvre avec la date de naissance ; le lien ne sert qu’une fois.
+
+### Bon à savoir
+
+- **Missions déjà « contrôlées »** : les paiements naissent au passage à cette étape. Une mission qui l’a franchie avant la mise à jour n’a pas de paiement : la ramener à « Preuves collectées » puis la repasser à « Contrôlée » les crée.
+- **Scores** : le score est désormais calculé à partir des évaluations et des présences. Un profil sans évaluation ni présence n’a pas de score (« - »).
+- **Titres de mission** : ils sont visibles des intervenants dans leur espace. Pour une mission confidentielle (visite mystère), choisir un titre qui ne nomme pas le client.
+- **Liens de l’espace intervenant** : ils pointent vers l’adresse depuis laquelle ils ont été préparés. Les préparer depuis le site en ligne, jamais depuis un poste de développement.
+
+### Retour arrière
+
+- **Code** : *Instant Rollback* dans Vercel remet la version précédente. La base migrée reste compatible avec elle : pas besoin de toucher à la base.
+- **Base** : seulement si une migration a abîmé des données, restaurer depuis la branche `avant-phase-2`.
+
+### Décisions encore attendues de PROXIMA
+
+| Sujet | Valeur de départ dans le programme |
+|---|---|
+| Pondération des 8 critères du score | 15 / 15 / 10 / 15 / 10 / 15 / 10 / 10 (modifiable dans **Paramètres**) |
+| Qui paie les intervenants | Administrateur seulement ; le commercial émet et encaisse les factures |
+| Retard de paiement client « important » | Plus de 15 jours après l’échéance |
+| Client « satisfait » | Note de 4 ou 5 sur 5 (cible : 85 %) |
+| Fournisseur SMS / WhatsApp Business | Aucun : envoi depuis le téléphone de l’équipe, en attendant le choix (note de cadrage, § 7.3) |
+| Mentions légales des factures | Non imprimées par le programme : IFU, adresse et RCCM de PROXIMA à fournir |
+
+---
+
+## 10. Coûts récurrents indicatifs
 
 Tarifs publics à confirmer au moment de la souscription.
 

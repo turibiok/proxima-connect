@@ -6,6 +6,7 @@ import { formaterFCFA } from '@/lib/clients/regles';
 import { DELAI_PAIEMENT, MODES_PAIEMENT, type ModePaiement } from '@/lib/finances/regles';
 import { STATUTS_PROFIL, type StatutProfil } from '@/lib/referentiel';
 import { PuceStatut } from '@/components/Statut';
+import { ReponseProposition } from './Reponse';
 
 // page du meme segment que le layout de l'espace : son modele de titre ne s'applique pas ici
 export const metadata = { title: { absolute: 'Mon espace PROXIMA' } };
@@ -37,6 +38,7 @@ interface Mission {
   briefing_le: Date | null;
   briefing_lieu: string | null;
   remplace: boolean;
+  proposition_expire_le: Date | null;
 }
 
 /**
@@ -52,7 +54,7 @@ export default async function AccueilEspace() {
     requete<Mission>(
       `SELECT a.id AS affectation_id, m.titre, m.type_mission, m.date_debut, m.date_fin, m.horaires, m.lieu, m.zone, m.objectifs, m.statut,
               a.role, a.reponse, a.proposee_le, a.presence, coalesce(a.remuneration_proposee_fcfa, m.remuneration_agent_fcfa) AS remuneration,
-              m.briefing_le, m.briefing_lieu,
+              m.briefing_le, m.briefing_lieu, a.proposition_expire_le,
               EXISTS (SELECT 1 FROM affectation r WHERE r.remplace_affectation_id = a.id) AS remplace
          FROM affectation a JOIN mission m ON m.id = a.mission_id
         WHERE a.intervenant_id = $1 AND m.statut <> 'annulee' AND (a.proposee_le IS NOT NULL OR a.presence IS NOT NULL)
@@ -95,10 +97,12 @@ export default async function AccueilEspace() {
             {propositions.map((m) => (
               <li key={m.affectation_id}>
                 <FicheMission m={m} />
+                {m.proposition_expire_le && <p className="mt-1 text-xs text-alerte">Réponse attendue avant le {dateHeure(m.proposition_expire_le)}.</p>}
+                <ReponseProposition affectationId={m.affectation_id} />
               </li>
             ))}
           </ul>
-          <p className="mt-3 text-xs text-encre-douce">Pour répondre, répondez OUI ou NON au message reçu, ou appelez l’équipe PROXIMA.</p>
+          <p className="mt-3 text-xs text-encre-douce">Vous pouvez aussi répondre OUI ou NON au message reçu, ou appeler l’équipe PROXIMA.</p>
         </section>
       )}
 

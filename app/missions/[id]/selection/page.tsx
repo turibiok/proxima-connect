@@ -5,29 +5,14 @@ import { requete } from '@/lib/db';
 import { periode } from '@/lib/format';
 import { afficherTelephone } from '@/lib/intervenants/regles';
 import { ajouterProfils } from '@/lib/missions/actions';
-import { chargerMission } from '@/lib/missions/donnees';
-import { chevauchement, compatibilite, joursMission, type Critere } from '@/lib/missions/regles';
+import { candidatsClasses, chargerMission } from '@/lib/missions/donnees';
+import { type Critere } from '@/lib/missions/regles';
+import { choisirCandidats, configFournisseur, envoiAutomatiquePossible, nombreReserve } from '@/lib/automatisation/regles';
+import { SelectionAutomatique } from './Automatique';
 import { JOURS, libelle, libelleCategorie, type StatutProfil } from '@/lib/referentiel';
 import { PuceStatut } from '@/components/Statut';
 
 export const metadata = { title: 'Sélection des profils' };
-
-interface Profil {
-  id: string;
-  reference: string;
-  nom: string;
-  prenoms: string;
-  telephone: string;
-  ville: string;
-  quartier: string | null;
-  zones: string[];
-  categories_missions: string[];
-  jours_disponibles: string[];
-  competences: string[];
-  score: number | null;
-  statut: StatutProfil;
-  missions_realisees: number;
-}
 
 /**
  * Selection des profils compatibles (cahier des charges 5.3) : le vivier
@@ -50,39 +35,27 @@ export default async function Selection({
   if (!m) notFound();
   if (!['selection', 'preparation', 'execution'].includes(m.statut)) redirect(`/missions/${id}`);
 
-  const [profils, engagements, dejaLa] = await Promise.all([
-    requete<Profil>(
-      `SELECT i.id, i.reference, i.nom, i.prenoms, i.telephone, i.ville, i.quartier, i.zones, i.categories_missions,
-              i.jours_disponibles, i.competences, i.score, i.statut,
-              (SELECT count(*) FROM affectation a WHERE a.intervenant_id = i.id AND a.presence IN ('present', 'retard'))::int AS missions_realisees
-         FROM intervenant i WHERE i.statut IN ('verifie', 'actif')`,
-    ),
-    // engagements acceptes sur d'autres missions vivantes, pour detecter les chevauchements
-    requete<{ intervenant_id: string; debut: string | null; fin: string | null; reference: string }>(
-      `SELECT a.intervenant_id, m.date_debut AS debut, m.date_fin AS fin, m.reference
-         FROM affectation a JOIN mission m ON m.id = a.mission_id
-        WHERE a.reponse = 'accepte' AND m.id <> $1 AND m.statut NOT IN ('annulee', 'payee')`,
+  const [{ besoin, classes }, dejaLa] = await Promise.all([
+    candidatsClasses({ id, categorie: m.categorie, zone: m.zone, date_debut: m.date_debut, date_fin: m.date_fin, competences: m.competences, score_minimum: m.score_minimum }),
+    requete<{ intervenant_id: string; role: string; reponse: string; presence: string | null; remplace: boolean }>(
+      `SELECT a.intervenant_id, a.role, a.reponse, a.presence,
+              EXISTS (SELECT 1 FROM affectation r WHERE r.remplace_affectation_id = a.id) AS remplace
+         FROM affectation a WHERE a.mission_id = $1`,
       [id],
     ),
-    requete<{ intervenant_id: string; role: string }>('SELECT intervenant_id, role FROM affectation WHERE mission_id = $1', [id]),
   ]);
-
-  const besoin = {
-    categorie: m.categorie,
-    zone: m.zone,
-    jours: joursMission(m.date_debut, m.date_fin),
-    competences: m.competences,
-    score_minimum: m.score_minimum,
-  };
-  const periodeMission = { debut: m.date_debut, fin: m.date_fin };
+  // apercu de la selection automatique (phase 3) : meme regle que son execution
+  const enLice = (role: string) => dejaLa.filter((a) => a.role === role && a.reponse !== 'refuse' && !a.remplace && a.presence !== 'absent').length;
+  const choix = choisirCandidats(
+    classes.map((x) => ({ id: x.p.id, eligible: x.eligible, points: x.points, score: x.p.score })),
+    {
+      titulaires: m.nb_profils_requis - enLice('titulaire'),
+      remplacants: nombreReserve(m.nb_profils_requis, m.reserve_pourcent) - enLice('remplacant'),
+      exclus: new Set(dejaLa.map((a) => a.intervenant_id)),
+    },
+  );
+  const nomDe = new Map(classes.map((x) => [x.p.id, `${x.p.prenoms.split(/\s+/)[0]} ${x.p.nom}`]));
   const presents = new Map(dejaLa.map((d) => [d.intervenant_id, d.role]));
-
-  const classes = profils
-    .map((p) => {
-      const conflit = engagements.find((e) => e.intervenant_id === p.id && chevauchement(periodeMission, e));
-      return { p, conflit, ...compatibilite(besoin, p, !!conflit) };
-    })
-    .sort((a, b) => Number(b.eligible) - Number(a.eligible) || b.points - a.points || (b.p.score ?? 0) - (a.p.score ?? 0));
 
   const eligibles = classes.filter((c) => c.eligible);
   const affiches = tous ? classes : eligibles;
@@ -104,6 +77,15 @@ export default async function Selection({
           {manquent > 0 ? `${manquent} titulaire${manquent > 1 ? 's' : ''} à trouver` : 'Effectif titulaire atteint'}. Ajoutez quelques profils de plus en réserve : ils remplaceront un absent.
         </p>
       </div>
+
+      <SelectionAutomatique
+        missionId={id}
+        actif={m.selection_auto}
+        reserve={m.reserve_pourcent}
+        delai={m.delai_reponse_heures}
+        envoi={envoiAutomatiquePossible(configFournisseur(process.env))}
+        apercu={{ titulaires: choix.titulaires.map((x) => nomDe.get(x)!), remplacants: choix.remplacants.map((x) => nomDe.get(x)!) }}
+      />
 
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <Link href={`/missions/${id}/selection`} className={`rounded-full border px-3 py-1 ${!tous ? 'border-marque bg-marque-pale font-semibold' : 'border-trait bg-white'}`}>

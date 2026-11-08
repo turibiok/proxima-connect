@@ -8,7 +8,9 @@ import { NextResponse, type NextRequest } from 'next/server';
  */
 
 // /espace : espace des intervenants, avec sa propre session (lib/espace/session.ts)
-const PUBLIC = ['/connexion', '/inscription', '/acces-refuse', '/espace'];
+// /api/taches et /api/communication/entrant : planificateur et fournisseur
+// d'envoi, authentifies par leur secret ou leur signature
+const PUBLIC = ['/connexion', '/inscription', '/acces-refuse', '/espace', '/api/taches', '/api/communication/entrant'];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

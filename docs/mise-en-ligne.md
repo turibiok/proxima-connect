@@ -243,7 +243,50 @@ Les cinq migrations (`006` à `010`) ne font qu’ajouter des tables, des colonn
 
 ---
 
-## 10. Coûts récurrents indicatifs
+## 10. Phase 3 : sélection et notifications automatiques
+
+Développée sur la branche `phase-3` (après la Phase 2). Elle ne se publie qu’une fois la Phase 2 en ligne, comme elle : migration `011_automatisation.sql` d’abord, puis le code.
+
+### Ce qu’elle apporte
+
+- **Sélection automatique** (page *Sélection des profils* d’une mission) : le programme retient les profils compatibles les mieux classés, titulaires puis réserve (20 % par défaut), et leur envoie la proposition. Option « continuer automatiquement » : un refus, un retrait ou une proposition restée sans réponse libère la place, aussitôt reproposée au profil suivant.
+- **Délai de réponse** (24 h par défaut) : relance à mi-délai, puis la proposition expire.
+- **Réponses des intervenants** : OUI ou NON par SMS ou WhatsApp, ou boutons « J’accepte » / « Je refuse » dans leur espace.
+- **Tâches planifiées**, chaque heure : relances, expirations, rappel la veille du démarrage, confirmation des paiements versés, complétion des équipes. Suivi et lancement manuel dans *Paramètres → Automatisation*.
+
+### Sans fournisseur d’envoi (situation par défaut)
+
+Rien ne change pour les messages : le programme ne marque jamais un message comme envoyé s’il n’est pas parti. La sélection automatique ajoute les profils « à proposer » et l’équipe envoie les propositions comme en Phase 2. Les intervenants peuvent déjà répondre depuis leur espace.
+
+### Activer l’envoi automatique (Twilio)
+
+Twilio a été retenu comme premier fournisseur : il couvre le SMS et WhatsApp avec une seule API, et ses numéros acceptent les réponses. Un autre fournisseur s’ajouterait dans `lib/automatisation/` sans toucher au reste.
+
+1. Ouvrir un compte Twilio, acheter un numéro capable d’envoyer des SMS vers le Bénin (ou faire valider un identifiant d’expéditeur alphanumérique « PROXIMA »).
+2. Facultatif : faire valider un numéro **WhatsApp Business** par Meta, via Twilio. Hors de la fenêtre de 24 h ouverte par un message de l’intervenant, WhatsApp n’accepte que des modèles de message approuvés : à prévoir avant d’activer WhatsApp pour les propositions.
+3. Dans Vercel (*Settings → Environment Variables*, environnement Production) :
+
+   | Variable | Valeur |
+   |---|---|
+   | `COMMUNICATION_FOURNISSEUR` | `twilio` |
+   | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` | Identifiants du compte Twilio |
+   | `TWILIO_SMS_FROM` | Numéro ou identifiant d’expéditeur |
+   | `TWILIO_WHATSAPP_FROM` | Numéro WhatsApp validé (facultatif) |
+   | `APP_URL` | Adresse publique, par exemple `https://app.proximaconnect.bj` |
+
+4. Dans la console Twilio, sur le numéro : webhook *A message comes in*, méthode **POST**, adresse `https://<site>/api/communication/entrant`. Chaque requête reçue est authentifiée par sa signature Twilio.
+5. Coûts : facturés par message par Twilio (SMS vers le Bénin, conversations WhatsApp), à vérifier sur leur grille au moment de l’ouverture.
+
+> Ne jamais mettre `COMMUNICATION_FOURNISSEUR=simulation` en production : les envois seraient tracés comme faits sans que rien ne parte.
+
+### Activer le planificateur
+
+1. Définir `CRON_SECRET` dans Vercel (une longue valeur aléatoire). Sans elle, `/api/taches` refuse toute requête.
+2. La fréquence horaire est déclarée dans `vercel.json`. L’offre *Hobby* de Vercel limite les tâches planifiées à une par jour : l’offre **Pro** (déjà nécessaire pour un usage commercial) permet l’exécution horaire.
+
+---
+
+## 11. Coûts récurrents indicatifs
 
 Tarifs publics à confirmer au moment de la souscription.
 

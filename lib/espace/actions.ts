@@ -6,7 +6,8 @@ import { transaction, une } from '@/lib/db';
 import { exigerAction } from '@/lib/auth/session';
 import { consigner } from '@/lib/journal';
 import { accesAutorise, ECHECS_MAX, etatLien, lireDateNaissance, messageAcces, MESSAGES_LIEN } from './regles';
-import { creerLien, fermerSessionIntervenant, lireLien, ouvrirSessionIntervenant } from './session';
+import { creerLien, fermerSessionIntervenant, intervenantCourant, lireLien, ouvrirSessionIntervenant } from './session';
+import { enregistrerReponse } from '@/lib/automatisation/reponses';
 
 const UUID = /^[0-9a-f-]{36}$/i;
 
@@ -85,6 +86,21 @@ export async function ouvrirEspace(jeton: string, _: string | null, f: FormData)
   });
   if (issue.erreur) return issue.erreur;
   redirect('/espace');
+}
+
+/** Reponse de l'intervenant a une proposition, depuis son espace (phase 3). */
+export async function repondreProposition(affectationId: string, reponse: 'accepte' | 'refuse', _: string | null): Promise<string | null> {
+  const i = await intervenantCourant();
+  if (!i) return 'Votre session a expiré : rouvrez votre espace avec un nouveau lien.';
+  if (!UUID.test(affectationId) || (reponse !== 'accepte' && reponse !== 'refuse')) return 'Proposition introuvable.';
+  // une personne ne repond qu'a ses propres propositions
+  const a = await une('SELECT 1 FROM affectation WHERE id = $1 AND intervenant_id = $2', [affectationId, i.id]);
+  if (!a) return 'Proposition introuvable.';
+  const r = await enregistrerReponse(affectationId, reponse, 'espace', reponse === 'refuse' ? 'Refus depuis l’espace intervenant' : null);
+  if (!r.ok) return r.erreur;
+  revalidatePath('/espace');
+  revalidatePath(`/missions/${r.missionId}`);
+  return null;
 }
 
 export async function quitterEspace() {

@@ -8,6 +8,7 @@ import { exigerAction, type Contexte } from '@/lib/auth/session';
 import { consigner } from '@/lib/journal';
 import { recalculerScore } from '@/lib/score/calcul';
 import { etatFinancier, genererPaiements, retirerPaiements } from '@/lib/finances/mission';
+import { completerEquipe } from '@/lib/automatisation/selection';
 import {
   equipe,
   lireMission,
@@ -227,13 +228,18 @@ export async function operer(missionId: string, affectationId: string, _: string
   } catch (e) {
     return e instanceof Error ? e.message : 'Erreur inattendue.';
   }
+  // phase 3 : en selection automatique, un refus libere une place aussitot reproposee
+  if (op === 'refuser' || op === 'retirer') {
+    const m = await une<{ selection_auto: boolean }>('SELECT selection_auto FROM mission WHERE id = $1', [missionId]);
+    if (m?.selection_auto) await completerEquipe(missionId, ctx.utilisateur.id);
+  }
   rafraichir(missionId);
   return null;
 }
 
 async function operation(c: PoolClient, ctx: Contexte, missionId: string, affectationId: string, op: string, f: FormData) {
   const { rows } = await c.query(
-    `SELECT a.*, m.statut AS mission_statut, m.reference, m.titre, m.lieu, m.zone, m.date_debut, m.date_fin,
+    `SELECT a.*, m.statut AS mission_statut, m.selection_auto, m.reference, m.titre, m.lieu, m.zone, m.date_debut, m.date_fin,
             m.horaires, m.objectifs, m.remuneration_agent_fcfa, i.prenoms, i.nom, i.reference AS ref_intervenant
        FROM affectation a JOIN mission m ON m.id = a.mission_id JOIN intervenant i ON i.id = a.intervenant_id
       WHERE a.id = $1 AND a.mission_id = $2 FOR UPDATE OF a, m`,
@@ -276,7 +282,7 @@ async function operation(c: PoolClient, ctx: Contexte, missionId: string, affect
       if (!a.proposee_le) throw new Error('Envoyez d’abord la proposition.');
       const motif = op === 'refuser' ? String(f.get('motif') ?? '').trim().slice(0, 300) || null : null;
       await c.query(
-        `UPDATE affectation SET reponse = $2, reponse_le = now(), motif_refus = $3 WHERE id = $1`,
+        `UPDATE affectation SET reponse = $2, reponse_le = now(), motif_refus = $3, reponse_canal = 'equipe' WHERE id = $1`,
         [affectationId, op === 'accepter' ? 'accepte' : 'refuse', motif],
       );
       return trace('affectation_reponse', { reponse: op === 'accepter' ? 'accepte' : 'refuse', motif: motif ?? undefined });
@@ -285,7 +291,16 @@ async function operation(c: PoolClient, ctx: Contexte, missionId: string, affect
       if (a.presence) throw new Error('La présence est déjà notée : la ligne fait partie de l’historique.');
       const { rowCount } = await c.query('SELECT 1 FROM affectation WHERE remplace_affectation_id = $1', [affectationId]);
       if (rowCount) throw new Error('Cette personne a été remplacée : la ligne fait partie de l’historique.');
-      await c.query('DELETE FROM affectation WHERE id = $1', [affectationId]);
+      if (a.selection_auto) {
+        // en selection automatique, la ligne reste (comptee comme refus) : sinon
+        // le programme reproposerait la meme personne au passage suivant
+        await c.query(
+          `UPDATE affectation SET reponse = 'refuse', reponse_le = now(), reponse_canal = 'equipe', motif_refus = 'Retiré par l’équipe' WHERE id = $1`,
+          [affectationId],
+        );
+      } else {
+        await c.query('DELETE FROM affectation WHERE id = $1', [affectationId]);
+      }
       return trace('affectation_retrait', { role: a.role });
     }
     case 'presence': {

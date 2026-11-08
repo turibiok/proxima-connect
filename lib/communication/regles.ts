@@ -25,10 +25,11 @@ export const CANAUX: Record<Canal, string> = {
   email: 'E-mail',
 };
 
-export type Modele = 'proposition' | 'rappel' | 'paiement' | 'libre' | 'echange' | 'acces';
+export type Modele = 'proposition' | 'relance' | 'rappel' | 'paiement' | 'libre' | 'echange' | 'acces';
 
 export const MODELES: Record<Modele, string> = {
   proposition: 'Proposition de mission',
+  relance: 'Relance de proposition',
   rappel: 'Rappel de mission',
   paiement: 'Confirmation de paiement',
   libre: 'Message',

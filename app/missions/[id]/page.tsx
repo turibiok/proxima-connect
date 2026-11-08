@@ -121,6 +121,9 @@ export default async function Mission({ params }: { params: Promise<{ id: string
       lienWhatsApp: `${lienWhatsApp(numero)}${message ? `?text=${encodeURIComponent(message)}` : ''}`,
       lienSms: `sms:${l.telephone}${message ? `?body=${encodeURIComponent(message)}` : ''}`,
       peutRemplacer: pointage || composition ? remplacable(l, e.remplaces) : false,
+      auto: l.origine === 'automatique',
+      reponseCanal: l.reponse_canal,
+      echeance: l.proposition_expire_le ? dateHeure(l.proposition_expire_le) : null,
     };
   };
 
@@ -199,6 +202,7 @@ export default async function Mission({ params }: { params: Promise<{ id: string
               {e.aProposer.length > 0 && `${e.aProposer.length} à proposer · `}
               {e.enAttente.length > 0 && `${e.enAttente.length} réponse${e.enAttente.length > 1 ? 's' : ''} attendue${e.enAttente.length > 1 ? 's' : ''} · `}
               {reserve.length} remplaçant{reserve.length > 1 ? 's' : ''} en réserve
+              {m.selection_auto && composition && ' · sélection automatique active'}
             </p>
             {m.remuneration_agent_fcfa === null && modifiable && (
               <p className="mb-2 rounded-lg bg-alerte-pale px-3 py-2 text-sm text-alerte">

@@ -23,6 +23,10 @@ export interface VueLigne {
   lienWhatsApp: string;
   lienSms: string;
   peutRemplacer: boolean;
+  /** phase 3 : choisi par le programme, canal de la reponse, echeance */
+  auto: boolean;
+  reponseCanal: string | null;
+  echeance: string | null;
 }
 
 const CANAUX: Record<string, string> = { whatsapp: 'WhatsApp', sms: 'SMS', appel: 'appel' };
@@ -57,6 +61,11 @@ export function LigneEquipe({
             <span className="font-mono">{l.reference}</span> · {l.telephone}
             {l.score !== null && ` · score ${Math.round(l.score)}`}
             {l.remplace && <> · remplace {l.remplace}</>}
+            {l.auto && <> · choisi automatiquement</>}
+            {l.reponse === 'en_attente' && l.echeance && <> · réponse attendue avant le {l.echeance}</>}
+            {l.reponse !== 'en_attente' && l.reponseCanal && l.reponseCanal !== 'equipe' && (
+              <> · {({ sms: 'a répondu par SMS', whatsapp: 'a répondu par WhatsApp', espace: 'a répondu depuis son espace', delai: 'sans réponse dans le délai' } as Record<string, string>)[l.reponseCanal]}</>
+            )}
           </div>
         </div>
         <Etat l={l} />

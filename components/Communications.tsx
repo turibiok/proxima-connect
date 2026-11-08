@@ -19,11 +19,13 @@ export interface LigneCommunication {
   reference: string | null;
   intervenant_id: string;
   intervenant: string | null;
+  erreur: string | null;
+  fournisseur_ref: string | null;
 }
 
 /** Requete commune : historique d'un intervenant ou d'une mission. */
 export const SQL_COMMUNICATIONS = (filtre: 'intervenant' | 'mission') => `
-  SELECT c.id, c.canal, c.objet, c.contenu, c.modele, c.sens, c.mode, c.numero, c.statut, c.cree_le,
+  SELECT c.id, c.canal, c.objet, c.contenu, c.modele, c.sens, c.mode, c.numero, c.statut, c.cree_le, c.erreur, c.fournisseur_ref,
          u.nom_complet AS auteur, c.mission_id, m.reference, c.intervenant_id, i.nom || ' ' || i.prenoms AS intervenant
     FROM communication c
     LEFT JOIN utilisateur u ON u.id = c.auteur_id
@@ -47,7 +49,7 @@ export function HistoriqueCommunications({ lignes, vue }: { lignes: LigneCommuni
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <span className="font-medium">
               {l.sens === 'entrant' ? '← ' : '→ '}
-              {l.modele ? MODELES[l.modele] : l.objet}
+              {l.sens === 'entrant' && l.mode === 'automatique' ? l.objet : l.modele ? MODELES[l.modele] : l.objet}
               <span className="font-normal text-encre-douce">
                 {' · '}{CANAUX[l.canal] ?? l.canal}
                 {vue === 'intervenant' && l.reference && <> · <Link href={`/missions/${l.mission_id}`} className="font-mono text-xs hover:underline">{l.reference}</Link></>}
@@ -65,13 +67,17 @@ export function HistoriqueCommunications({ lignes, vue }: { lignes: LigneCommuni
               <p className="mt-1 whitespace-pre-line rounded-lg bg-papier p-2 text-xs">{l.contenu}</p>
             </details>
           )}
-          <p className="text-xs text-encre-douce">
+          <p className={`text-xs ${l.statut === 'echec' ? 'font-medium text-danger' : 'text-encre-douce'}`}>
             {l.sens === 'entrant'
               ? 'Reçu de l’intervenant'
               : l.modele === 'echange'
                 ? 'Échange à l’initiative de PROXIMA'
                 : l.mode === 'automatique'
-                  ? `Envoyé automatiquement${l.statut === 'echec' ? ' : échec' : ''}`
+                  ? l.statut === 'echec'
+                    ? `Échec de l’envoi automatique : ${l.erreur ?? 'motif inconnu'}`
+                    : l.fournisseur_ref?.startsWith('SIMULATION')
+                      ? 'Envoi automatique simulé : rien n’est parti'
+                      : 'Envoyé automatiquement'
                   : 'Envoyé depuis le téléphone de l’équipe'}
             {l.numero && ` · ${afficherTelephone(l.numero)}`}
           </p>

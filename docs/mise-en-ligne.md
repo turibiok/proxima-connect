@@ -286,7 +286,44 @@ Twilio a été retenu comme premier fournisseur : il couvre le SMS et WhatsApp a
 
 ---
 
-## 11. Coûts récurrents indicatifs
+## 11. Phase 4 : application mobile et espace client
+
+Branche `phase-4` (après la Phase 3). Migration `012_espace_client.sql`.
+
+### Application installable
+
+Plutôt qu’une application de magasin (Play Store, App Store), le site s’installe sur l’écran d’accueil du téléphone (« application web progressive ») :
+
+- un seul code à maintenir, aucun compte développeur Google ou Apple, aucune validation de magasin ;
+- mises à jour immédiates pour tous, sans téléchargement ;
+- icône, ouverture en plein écran, page « hors connexion » quand le réseau manque.
+
+Fonctionnement :
+
+- **Android (Chrome)** : un bouton « Installer » apparaît dans l’espace intervenant et l’espace client.
+- **iPhone (Safari)** : bouton Partager, puis « Sur l’écran d’accueil » (rappelé à l’écran).
+- À l’ouverture, l’application oriente chacun vers son espace : tableau de bord pour l’équipe, espace intervenant, espace client.
+- Par prudence, aucune page n’est gardée en mémoire sur le téléphone (données personnelles, téléphones prêtés) : seuls les fichiers techniques et la page « hors connexion » le sont.
+
+Si une application de magasin devenait nécessaire (notifications poussées sur iPhone, par exemple), elle pourrait envelopper ce même site.
+
+### Espace client
+
+- Adresse : `/client`. Les accès se créent depuis la fiche client, bloc **Espace client** (rôles administrateur et commercial).
+- Le mot de passe provisoire n’est affiché qu’une fois : le transmettre de vive voix ou par téléphone, pas par l’adresse e-mail du compte. Il doit être changé à la première connexion.
+- Le client voit ses missions (préparation, terrain, contrôle des données, rapport disponible), lit et imprime les rapports transmis (le même document que celui préparé par l’équipe), consulte ses factures et le reste à régler, et donne son avis sur chaque mission.
+- Il ne voit rien des intervenants (ni noms ni coordonnées) ni des autres clients.
+
+### Recette
+
+- [ ] Sur un téléphone Android : « Installer », puis ouverture depuis l’icône.
+- [ ] Mode avion : la page « Pas de connexion » s’affiche.
+- [ ] Création d’un accès client, connexion, changement du mot de passe provisoire.
+- [ ] Un rapport transmis s’affiche avec ses photos ; l’avis du client apparaît sur la page du rapport côté équipe.
+
+---
+
+## 12. Coûts récurrents indicatifs
 
 Tarifs publics à confirmer au moment de la souscription.
 

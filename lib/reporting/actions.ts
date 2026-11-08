@@ -119,7 +119,8 @@ export async function enregistrerSatisfaction(missionId: string, _: EtatRapport,
       if (!m) throw new Error('Mission introuvable.');
       if (!m.rapport_transmis_le) throw new Error('Le client donne son avis après avoir reçu le rapport.');
       await c.query(
-        `UPDATE mission SET satisfaction_note = $2, satisfaction_commentaire = $3, satisfaction_le = now(), satisfaction_par = $4, maj_le = now() WHERE id = $1`,
+        `UPDATE mission SET satisfaction_note = $2, satisfaction_commentaire = $3, satisfaction_le = now(), satisfaction_par = $4,
+                satisfaction_source = 'equipe', satisfaction_compte = NULL, maj_le = now() WHERE id = $1`,
         [missionId, r.donnees.note, r.donnees.commentaire, ctx.utilisateur.id],
       );
       // trace sur la mission et sur la fiche du client

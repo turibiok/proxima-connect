@@ -30,6 +30,17 @@ export function verifier(motDePasse: string, hash: string, sel: string): boolean
   }
 }
 
+/**
+ * Mot de passe provisoire lisible (sans 0/O ni 1/l), a transmettre de vive
+ * voix ; il respecte la regle de robustesse et doit etre change a la
+ * premiere connexion.
+ */
+export function motDePasseProvisoire(): string {
+  const alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  const s = [...randomBytes(12)].map((b) => alphabet[b % alphabet.length]).join('');
+  return `${s.slice(0, 4)}-${s.slice(4, 8)}-${s.slice(8)}7Q`;
+}
+
 /** Problemes de robustesse ; liste vide si le mot de passe est acceptable. */
 export function robustesse(motDePasse: string): string[] {
   const p: string[] = [];

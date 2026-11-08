@@ -10,7 +10,9 @@ import { NextResponse, type NextRequest } from 'next/server';
 // /espace : espace des intervenants, avec sa propre session (lib/espace/session.ts)
 // /api/taches et /api/communication/entrant : planificateur et fournisseur
 // d'envoi, authentifies par leur secret ou leur signature
-const PUBLIC = ['/connexion', '/inscription', '/acces-refuse', '/espace', '/api/taches', '/api/communication/entrant'];
+// /client : espace des clients, avec sa propre session (lib/client/session.ts)
+// /demarrage, /hors-ligne : application installable (aiguillage, page sans reseau)
+const PUBLIC = ['/connexion', '/inscription', '/acces-refuse', '/espace', '/client', '/demarrage', '/hors-ligne', '/api/taches', '/api/communication/entrant'];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -23,5 +25,6 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|icon.svg|robots.txt).*)'],
+  // fichiers publics de l'application installable : manifeste, service worker, icones
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|icon.svg|robots.txt|manifest.webmanifest|sw.js|icone-.*\.png|apple-touch-icon.png).*)'],
 };

@@ -10,6 +10,7 @@ import { libelleCategorie } from '@/lib/referentiel';
 import { PuceBrief, PuceCommerciale, PuceFacture } from '@/components/Statut';
 import { aujourdhuiBenin, situationFacture, TYPES_FACTURE, type StatutFacture, type TypeFacture } from '@/lib/finances/regles';
 import { ChoixStatutCommercial } from './StatutCommercial';
+import { AccesClient } from './AccesClient';
 
 export const metadata = { title: 'Fiche client' };
 
@@ -21,7 +22,7 @@ export default async function FicheClient({ params }: { params: Promise<{ id: st
   const c = await une<Record<string, any>>('SELECT * FROM client WHERE id = $1', [id]);
   if (!c) notFound();
 
-  const [briefs, missions, factures, historique, listeFactures] = await Promise.all([
+  const [briefs, missions, factures, historique, listeFactures, comptes] = await Promise.all([
     requete<{ id: string; objectif: string; categorie: string | null; type_mission: string | null; nb_profils: number | null; date_debut: string | null; date_fin: string | null; budget_fcfa: number | null; statut: StatutBrief; recu_le: Date }>(
       `SELECT id, objectif, categorie, type_mission, nb_profils, date_debut, date_fin, budget_fcfa, statut, recu_le
          FROM brief WHERE client_id = $1 ORDER BY (statut = 'recu') DESC, recu_le DESC`,
@@ -52,6 +53,10 @@ export default async function FicheClient({ params }: { params: Promise<{ id: st
           [id],
         )
       : [],
+    requete<{ id: string; email: string; nom_complet: string; actif: boolean; mdp_provisoire: boolean; derniere_connexion: Date | null }>(
+      'SELECT id, email, nom_complet, actif, mdp_provisoire, derniere_connexion FROM compte_client WHERE client_id = $1 ORDER BY actif DESC, nom_complet',
+      [id],
+    ),
   ]);
   const jour = aujourdhuiBenin();
 
@@ -179,6 +184,15 @@ export default async function FicheClient({ params }: { params: Promise<{ id: st
               </p>
             </Bloc>
           )}
+
+          <Bloc titre="Espace client">
+            <AccesClient
+              clientId={id}
+              modifiable={modifiable}
+              comptes={comptes.map((k) => ({ ...k, derniere_connexion: k.derniere_connexion ? dateHeure(k.derniere_connexion) : null }))}
+            />
+            <p className="mt-2 text-xs text-encre-douce">Le client y suit ses missions, lit ses rapports, voit ses factures et donne son avis.</p>
+          </Bloc>
 
           <Bloc titre="Contact">
             <p className="font-medium">{c.contact_nom ?? '-'}</p>

@@ -5,10 +5,14 @@ import { contexte } from '@/lib/auth/session';
 import { MENU, ROLES } from '@/lib/auth/roles';
 import { Menu } from '@/components/Menu';
 import { seDeconnecter } from './actions-session';
+import { EnregistrementServiceWorker } from '@/components/ApplicationInstallable';
 
 export const metadata: Metadata = {
   title: { default: 'PROXIMA CONNECT', template: '%s · PROXIMA CONNECT' },
   description: 'Gestion du vivier d’intervenants, des clients et des missions terrain.',
+  // application installable (phase 4) : icone et barre d'etat sur iPhone
+  icons: { apple: '/apple-touch-icon.png' },
+  appleWebApp: { capable: true, title: 'PROXIMA', statusBarStyle: 'default' },
 };
 
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#1d4ed8' };
@@ -49,6 +53,7 @@ export default async function Racine({ children }: { children: React.ReactNode }
           </div>
         </header>
         <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>
+        <EnregistrementServiceWorker />
       </body>
     </html>
   );

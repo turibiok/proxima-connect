@@ -92,6 +92,8 @@ export async function ouvrirSessionIntervenant(c: PoolClient, intervenantId: str
     path: '/espace',
     maxAge: DUREE_SESSION_JOURS * 86_400,
   });
+  // repere d'aiguillage de l'application installee (/demarrage), sans valeur d'acces
+  (await cookies()).set('px_profil', 'intervenant', { path: '/', sameSite: 'lax', maxAge: DUREE_SESSION_JOURS * 86_400, secure: process.env.NODE_ENV === 'production' });
 }
 
 /** Intervenant connecte a l'espace, ou null. Un profil devenu inactif perd l'acces aussitot. */

@@ -7,6 +7,7 @@ import { DELAI_PAIEMENT, MODES_PAIEMENT, type ModePaiement } from '@/lib/finance
 import { STATUTS_PROFIL, type StatutProfil } from '@/lib/referentiel';
 import { PuceStatut } from '@/components/Statut';
 import { ReponseProposition } from './Reponse';
+import { InviterInstallation } from '@/components/ApplicationInstallable';
 
 // page du meme segment que le layout de l'espace : son modele de titre ne s'applique pas ici
 export const metadata = { title: { absolute: 'Mon espace PROXIMA' } };
@@ -78,6 +79,7 @@ export default async function AccueilEspace() {
 
   return (
     <div className="space-y-5">
+      <InviterInstallation />
       <section className="carte p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <PuceStatut statut={statut} />

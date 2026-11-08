@@ -72,6 +72,8 @@ export const LIBELLES_ACTIONS: Record<string, string> = {
   rapport_transmission: 'Rapport transmis au client',
   satisfaction_client: 'Avis du client enregistré',
   export_donnees: 'Export de données',
+  communication_envoi: 'Message envoyé à l’intervenant',
+  communication_echange: 'Échange consigné avec l’intervenant',
   compte_creation: 'Création de compte',
   compte_reinitialisation: 'Mot de passe réinitialisé par un administrateur',
   compte_etat: 'Activation / désactivation de compte',

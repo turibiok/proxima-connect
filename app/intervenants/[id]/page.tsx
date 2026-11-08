@@ -26,6 +26,9 @@ import {
 import { PuceStatut } from '@/components/Statut';
 import { ChangementStatut, Controles } from './Verification';
 import { SectionScore } from './Score';
+import { ConsignerEchange } from './Echange';
+import { Envoi } from '@/components/Envoi';
+import { HistoriqueCommunications, SQL_COMMUNICATIONS, type LigneCommunication } from '@/components/Communications';
 
 export const metadata = { title: 'Fiche intervenant' };
 
@@ -62,7 +65,7 @@ export default async function FicheIntervenant({ params }: { params: Promise<{ i
     if (!recente) await consigner({ utilisateurId: ctx.utilisateur.id, action: 'consultation_sensible', entite: 'intervenant', entiteId: id });
   }
 
-  const [missions, historique] = await Promise.all([
+  const [missions, historique, communications] = await Promise.all([
     requete<{ id: string; reference: string; titre: string; statut: string; role: string; reponse: string; presence: string | null; date_debut: string | null }>(
       `SELECT m.id, m.reference, m.titre, m.statut, a.role, a.reponse, a.presence, m.date_debut
          FROM affectation a JOIN mission m ON m.id = a.mission_id
@@ -76,7 +79,9 @@ export default async function FicheIntervenant({ params }: { params: Promise<{ i
         ORDER BY j.cree_le DESC LIMIT 30`,
       [id],
     ),
+    requete<LigneCommunication>(SQL_COMMUNICATIONS('intervenant'), [id]),
   ]);
+  const ecrire = ctx.peut('mission:modifier') || ctx.peut('profil:modifier');
 
   const maintenant = new Date();
   const liste = controles(p as any, maintenant).map((c) => ({
@@ -169,6 +174,28 @@ export default async function FicheIntervenant({ params }: { params: Promise<{ i
                 ))}
               </ul>
             )}
+          </Bloc>
+
+          <Bloc titre={`Communications (${communications.length})`}>
+            {ecrire && (
+              <div className="mb-4 grid gap-3 border-b border-trait pb-4">
+                <details>
+                  <summary className="cursor-pointer text-sm font-medium text-marque">Écrire à {p.prenoms.split(/\s+/)[0]}</summary>
+                  <Envoi
+                    cible={{ intervenantId: id }}
+                    modele="libre"
+                    telephone={p.telephone}
+                    whatsapp={p.whatsapp}
+                    texte={`Bonjour ${p.prenoms.split(/\s+/)[0]},\n\n\nPROXIMA CONNECT`}
+                  />
+                </details>
+                <details>
+                  <summary className="cursor-pointer text-sm font-medium text-marque">Consigner un appel ou un message reçu</summary>
+                  <ConsignerEchange intervenantId={id} missions={missions.map((m) => ({ id: m.id, reference: m.reference, titre: m.titre }))} />
+                </details>
+              </div>
+            )}
+            <HistoriqueCommunications lignes={communications} vue="intervenant" />
           </Bloc>
 
           <SectionScore intervenantId={id} score={p.score} ctx={ctx} />

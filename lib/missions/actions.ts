@@ -261,7 +261,9 @@ async function operation(c: PoolClient, ctx: Contexte, missionId: string, affect
       );
       // historique des communications (5.8) : le texte exact des conditions annoncees
       await c.query(
-        `INSERT INTO communication (intervenant_id, mission_id, canal, objet, contenu, auteur_id) VALUES ($1, $2, $3, 'Proposition de mission', $4, $5)`,
+        `INSERT INTO communication (intervenant_id, mission_id, canal, objet, contenu, auteur_id, modele, numero)
+         SELECT $1, $2, $3, 'Proposition de mission', $4, $5, 'proposition', CASE WHEN $3 = 'whatsapp' THEN coalesce(i.whatsapp, i.telephone) ELSE i.telephone END
+           FROM intervenant i WHERE i.id = $1`,
         [a.intervenant_id, missionId, canal, messageProposition({
           prenom: a.prenoms, titre: a.titre, lieu: a.lieu, zone: a.zone, date_debut: a.date_debut, date_fin: a.date_fin,
           horaires: a.horaires, remuneration: a.remuneration_agent_fcfa, objectifs: a.objectifs, role: a.role,

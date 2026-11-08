@@ -24,6 +24,9 @@ import { PuceFacture, PuceMission, PucePaiement } from '@/components/Statut';
 import { SQL_ETAT_FINANCIER } from '@/lib/finances/mission';
 import { aujourdhuiBenin, delaiPaiement, libelleDuree, situationFacture, TYPES_FACTURE, type StatutFacture, type StatutPaiement, type TypeFacture } from '@/lib/finances/regles';
 import { LigneEquipe, type VueLigne } from './Equipe';
+import { Envoi } from '@/components/Envoi';
+import { HistoriqueCommunications, SQL_COMMUNICATIONS, type LigneCommunication } from '@/components/Communications';
+import { messageRappel } from '@/lib/communication/regles';
 import { Briefing, ChangementEtape } from './Pilotage';
 
 export const metadata = { title: 'Mission' };
@@ -39,7 +42,7 @@ export default async function Mission({ params }: { params: Promise<{ id: string
   if (!m) notFound();
 
   const finances = ctx.peut('finance:lire');
-  const [lignes, historique, [bilan], paiements, factures, [etatFin]] = await Promise.all([
+  const [lignes, historique, [bilan], paiements, factures, [etatFin], communications] = await Promise.all([
     chargerEquipe(id),
     requete<{ action: string; details: any; cree_le: Date; auteur: string | null }>(
       `SELECT j.action, j.details, j.cree_le, u.nom_complet AS auteur
@@ -71,7 +74,11 @@ export default async function Mission({ params }: { params: Promise<{ id: string
       : [],
     // l'etape « payee » depend des paiements et des factures, quel que soit le role qui consulte
     requete<{ paiementsOuverts: number; factures: number; nonSoldees: number }>(SQL_ETAT_FINANCIER, [id]),
+    requete<LigneCommunication>(SQL_COMMUNICATIONS('mission'), [id]),
   ]);
+  // dernier rappel envoye a chacun (module 5.8)
+  const rappels = new Map<string, Date>();
+  for (const c of communications) if (c.modele === 'rappel' && !rappels.has(c.intervenant_id)) rappels.set(c.intervenant_id, c.cree_le);
 
   const statut = m.statut as StatutMission;
   const e = equipe(lignes);
@@ -312,6 +319,49 @@ export default async function Mission({ params }: { params: Promise<{ id: string
                   })}
                 </ul>
               )}
+            </section>
+          )}
+
+          {(communications.length > 0 || (modifiable && ['preparation', 'execution'].includes(statut) && e.engages.length > 0)) && (
+            <section className="carte p-5">
+              <h2 className="mb-1 font-bold">Communication</h2>
+              {modifiable && ['preparation', 'execution'].includes(statut) && e.engages.length > 0 && (
+                <div className="mb-4">
+                  <p className="mb-2 text-sm text-encre-douce">Rappel à envoyer la veille du démarrage : date, rendez-vous, horaires.</p>
+                  <ul className="divide-y divide-trait">
+                    {e.engages.map((a) => {
+                      const l = parId.get(a.id)!;
+                      const envoye = rappels.get(l.intervenant_id);
+                      return (
+                        <li key={a.id} className="py-2">
+                          <details>
+                            <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2 text-sm">
+                              <span className="font-medium">{l.nom} {l.prenoms}</span>
+                              {envoye ? (
+                                <span className="puce bg-ok-pale text-ok">Rappel envoyé le {dateHeure(envoye)}</span>
+                              ) : (
+                                <span className="puce bg-alerte-pale text-alerte">Rappel à envoyer</span>
+                              )}
+                            </summary>
+                            <Envoi
+                              cible={{ intervenantId: l.intervenant_id, missionId: id }}
+                              modele="rappel"
+                              telephone={l.telephone}
+                              whatsapp={l.whatsapp}
+                              texte={messageRappel({
+                                prenoms: l.prenoms, titre: m.titre, date_debut: m.date_debut, horaires: m.horaires,
+                                lieu: m.lieu, zone: m.zone, aujourdhui: aujourdhuiBenin(),
+                              })}
+                            />
+                          </details>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+              <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-encre-douce">Historique des échanges</h3>
+              <HistoriqueCommunications lignes={communications} vue="mission" />
             </section>
           )}
 

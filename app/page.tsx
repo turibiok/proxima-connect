@@ -8,6 +8,7 @@ import { formaterFCFA } from '@/lib/clients/regles';
 import { aujourdhuiBenin, DELAI_PAIEMENT, libelleDuree, RETARD_IMPORTANT_JOURS } from '@/lib/finances/regles';
 import { facturesEnRetard, syntheseFactures, synthesePaiements } from '@/lib/finances/donnees';
 import { CIBLE_SATISFACTION, SEUIL_SATISFAIT } from '@/lib/reporting/regles';
+import { quand } from '@/lib/communication/regles';
 
 export const metadata = { title: 'Tableau de bord' };
 
@@ -16,7 +17,7 @@ export default async function TableauDeBord() {
   const finances = ctx.peut('finance:lire');
   const jour = aujourdhuiBenin();
 
-  const [chiffres, aVerifier, villes, categories, paie, tresoreries, retards] = await Promise.all([
+  const [chiffres, aVerifier, villes, categories, paie, tresoreries, retards, rappels] = await Promise.all([
     une<{ inscrits: number; verifies: number; actifs: number; en_attente: number; semaine: number; clients: number; prospects: number; briefs: number; missions: number; en_cours: number; presence: number | null; rejet: number | null; incidents: number; satisfaits: number; avis: number }>(
       `SELECT count(*)::int AS inscrits,
               count(*) FILTER (WHERE statut IN ('verifie', 'actif'))::int AS verifies,
@@ -51,6 +52,19 @@ export default async function TableauDeBord() {
     finances ? synthesePaiements() : null,
     finances ? syntheseFactures(jour) : [],
     finances ? facturesEnRetard(jour, 100) : [],
+    // module 5.8 : rappels a envoyer la veille ou le jour du demarrage
+    ctx.peut('mission:modifier')
+      ? requete<{ id: string; reference: string; titre: string; date_debut: string; a_rappeler: number }>(
+          `SELECT m.id, m.reference, m.titre, m.date_debut, count(*)::int AS a_rappeler
+             FROM mission m
+             JOIN affectation a ON a.mission_id = m.id AND a.role = 'titulaire' AND a.reponse = 'accepte'
+                               AND NOT EXISTS (SELECT 1 FROM affectation r WHERE r.remplace_affectation_id = a.id)
+            WHERE m.statut IN ('preparation', 'execution') AND m.date_debut BETWEEN $1::date AND $1::date + 1
+              AND NOT EXISTS (SELECT 1 FROM communication c WHERE c.mission_id = m.id AND c.intervenant_id = a.intervenant_id AND c.modele = 'rappel')
+            GROUP BY m.id ORDER BY m.date_debut`,
+          [jour],
+        )
+      : [],
   ]);
   const echu = tresoreries.reduce((t, x) => t + x.echu, 0);
   const c = chiffres!;
@@ -104,6 +118,18 @@ export default async function TableauDeBord() {
           />
         )}
       </div>
+
+      {rappels.length > 0 && (
+        <section role="alert" className="rounded-xl border border-alerte/30 bg-alerte-pale px-4 py-3 text-sm text-alerte">
+          <strong>Rappels à envoyer</strong> :{' '}
+          {rappels.map((r, i) => (
+            <span key={r.id}>
+              {i > 0 && ' · '}
+              <Link href={`/missions/${r.id}`} className="font-medium underline">{r.reference}</Link> ({r.a_rappeler} intervenant{r.a_rappeler > 1 ? 's' : ''}, {quand(r.date_debut, jour)})
+            </span>
+          ))}
+        </section>
+      )}
 
       <div className="grid gap-5 lg:grid-cols-3">
         <section className="carte p-5 lg:col-span-2">

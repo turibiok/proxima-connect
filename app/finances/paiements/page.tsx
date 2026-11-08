@@ -17,6 +17,8 @@ import {
 } from '@/lib/finances/regles';
 import { PucePaiement } from '@/components/Statut';
 import { ActionsPaiement } from './Actions';
+import { Envoi } from '@/components/Envoi';
+import { messageConfirmationPaiement } from '@/lib/communication/regles';
 
 export const metadata = { title: 'Paiements des intervenants' };
 
@@ -51,6 +53,9 @@ interface Ligne {
   reference: string;
   titre: string;
   paye_par: string | null;
+  telephone: string;
+  whatsapp: string | null;
+  confirme_le: Date | null;
 }
 
 export default async function Paiements({ searchParams }: { searchParams: Promise<{ statut?: string }> }) {
@@ -66,7 +71,8 @@ export default async function Paiements({ searchParams }: { searchParams: Promis
               p.compte_beneficiaire, p.operateur, p.litige_motif, p.litige_resolution,
               i.id AS intervenant_id, i.nom, i.prenoms, i.reference AS ref_intervenant,
               i.paiement_mode, i.paiement_operateur, i.paiement_compte,
-              m.id AS mission_id, m.reference, m.titre, u.nom_complet AS paye_par
+              m.id AS mission_id, m.reference, m.titre, u.nom_complet AS paye_par, i.telephone, i.whatsapp,
+              (SELECT max(c.cree_le) FROM communication c WHERE c.paiement_id = p.id AND c.modele = 'paiement') AS confirme_le
          FROM paiement_intervenant p
          JOIN intervenant i ON i.id = p.intervenant_id
          JOIN mission m ON m.id = p.mission_id
@@ -174,6 +180,25 @@ export default async function Paiements({ searchParams }: { searchParams: Promis
                     {l.paye_par && ` · par ${l.paye_par}`}
                   </p>
                 )}
+                {l.statut === 'paye' && (l.confirme_le ? (
+                  <p className="mt-1 text-xs text-ok">Confirmation envoyée à l’intervenant le {dateHeure(l.confirme_le)}.</p>
+                ) : gestion ? (
+                  <details className="mt-2 border-t border-trait pt-2 text-sm">
+                    <summary className="cursor-pointer text-xs font-medium text-marque">Confirmer le paiement à l’intervenant</summary>
+                    <Envoi
+                      cible={{ intervenantId: l.intervenant_id, paiementId: l.id }}
+                      modele="paiement"
+                      telephone={l.telephone}
+                      whatsapp={l.whatsapp}
+                      texte={messageConfirmationPaiement({
+                        prenoms: l.prenoms, montant: l.montant_fcfa, titre: l.titre, reference: l.reference,
+                        mode: l.mode ?? 'mobile_money', referenceTransaction: l.reference_transaction ?? '', compte: l.compte_beneficiaire,
+                      })}
+                    />
+                  </details>
+                ) : (
+                  <p className="mt-1 text-xs text-alerte">Confirmation pas encore envoyée à l’intervenant.</p>
+                ))}
                 {l.statut === 'en_litige' && <p className="mt-2 rounded-lg bg-danger-pale px-3 py-2 text-sm text-danger">Litige : {l.litige_motif}</p>}
                 {l.statut !== 'en_litige' && l.litige_resolution && <p className="mt-2 text-xs text-encre-douce">Litige levé : {l.litige_resolution}</p>}
 

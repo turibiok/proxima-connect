@@ -59,6 +59,34 @@ body {
   }
 }
 
+/* impression (rapport client) : seul le document sort, sans menu ni commandes */
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+  body {
+    background: white;
+  }
+  body > header,
+  .non-imprime {
+    display: none !important;
+  }
+  main {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+  .document {
+    border: none !important;
+    padding: 0 !important;
+  }
+  .document section,
+  .document tr,
+  .document figure {
+    break-inside: avoid;
+  }
+}
+
 /* cibles tactiles confortables sur telephone */
 @media (pointer: coarse) {
   .btn,

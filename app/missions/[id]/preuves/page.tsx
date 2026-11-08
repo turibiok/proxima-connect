@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { exiger } from '@/lib/auth/session';
 import { requete } from '@/lib/db';
-import { dateHeure } from '@/lib/format';
+import { dateHeure, pourcentage } from '@/lib/format';
 import { chargerMission } from '@/lib/missions/donnees';
 import {
   bloquant,
@@ -127,7 +127,7 @@ export default async function Preuves({
         <Chiffre libelle="À contrôler" valeur={String(bilan.enAttente)} alerte={bilan.enAttente > 0} />
         <Chiffre
           libelle="Données rejetées"
-          valeur={rejet === null ? '-' : `${Math.round(rejet * 1000) / 10} %`}
+          valeur={rejet === null ? '-' : pourcentage(rejet)}
           detail="cible : moins de 5 %"
           alerte={rejet !== null && rejet >= 0.05}
         />

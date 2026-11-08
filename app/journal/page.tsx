@@ -55,6 +55,7 @@ export default async function Journal() {
                   ) : l.entite === 'client' && l.entite_id ? (
                     <Link href={`/clients/${l.entite_id}`} className="text-marque hover:underline">
                       {(l.details?.raison_sociale as string) ?? 'Client'}
+                      {typeof l.details?.numero === 'string' && ` : ${l.details.numero}`}
                     </Link>
                   ) : l.entite === 'mission' && l.entite_id ? (
                     <Link href={`/missions/${l.entite_id}`} className="text-marque hover:underline">
@@ -65,6 +66,11 @@ export default async function Journal() {
                     <Link href={`/briefs/${l.entite_id}`} className="text-marque hover:underline">
                       Brief{typeof l.details?.client === 'string' && ` de ${l.details.client}`}
                     </Link>
+                  ) : l.entite === 'export' ? (
+                    <span>
+                      {(l.details?.jeu as string) ?? l.entite_id}
+                      {typeof l.details?.lignes === 'number' && <span className="text-encre-douce"> ({l.details.lignes} ligne{l.details.lignes > 1 ? 's' : ''})</span>}
+                    </span>
                   ) : (
                     <span className="text-encre-douce">
                       {l.entite}

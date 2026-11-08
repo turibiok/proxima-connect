@@ -24,8 +24,9 @@ test('statuts : une etape a la fois, avec ses conditions', () => {
   assert.equal(refusTransition('execution', 'preuves_collectees', etat), null);
 });
 
-test('statuts : etapes des modules a venir fermees, retour arriere permis sauf vers le brief', () => {
-  assert.match(refusTransition('controlee', 'rapport_transmis', etat), /5\.7/);
+test('statuts : rapport transmis exige, retour arriere permis sauf vers le brief', () => {
+  assert.match(refusTransition('controlee', 'rapport_transmis', etat), /transmission au client/);
+  assert.equal(refusTransition('controlee', 'rapport_transmis', { ...etat, rapportTransmis: true }), null);
   assert.match(refusTransition('preuves_collectees', 'controlee', etat), /Aucune preuve validée/);
   assert.equal(
     refusTransition('preuves_collectees', 'controlee', { ...etat, bilan: { validees: 3, enAttente: 0, rejetees: 1, incidentsBloquants: 0 } }),

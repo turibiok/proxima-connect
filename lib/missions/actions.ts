@@ -121,7 +121,7 @@ export async function changerStatut(id: string, _: string | null, f: FormData): 
   const motif = String(f.get('motif') ?? '').trim().slice(0, 500);
   try {
     await transaction(async (c) => {
-      const { rows } = await c.query('SELECT statut, reference, nb_profils_requis, briefing_le FROM mission WHERE id = $1 FOR UPDATE', [id]);
+      const { rows } = await c.query('SELECT statut, reference, nb_profils_requis, briefing_le, rapport_transmis_le FROM mission WHERE id = $1 FOR UPDATE', [id]);
       const m = rows[0];
       if (!m) throw new Error('Mission introuvable.');
       const e = await etatEquipe(c, id);
@@ -139,6 +139,7 @@ export async function changerStatut(id: string, _: string | null, f: FormData): 
         briefing: !!m.briefing_le,
         presencesManquantes: e.presencesManquantes,
         bilan,
+        rapportTransmis: !!m.rapport_transmis_le,
         finances: vers === 'payee' ? await etatFinancier(c, id) : undefined,
       }, motif);
       if (refus) throw new Error(refus);

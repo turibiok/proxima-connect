@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import { exiger } from '@/lib/auth/session';
+import { pourcentage } from '@/lib/format';
 import { requete, une } from '@/lib/db';
 import { afficherTelephone } from '@/lib/intervenants/regles';
 import { CATEGORIES_MISSIONS } from '@/lib/referentiel';
 import { formaterFCFA } from '@/lib/clients/regles';
 import { aujourdhuiBenin, DELAI_PAIEMENT, libelleDuree, RETARD_IMPORTANT_JOURS } from '@/lib/finances/regles';
 import { facturesEnRetard, syntheseFactures, synthesePaiements } from '@/lib/finances/donnees';
+import { CIBLE_SATISFACTION, SEUIL_SATISFAIT } from '@/lib/reporting/regles';
 
 export const metadata = { title: 'Tableau de bord' };
 
@@ -15,7 +17,7 @@ export default async function TableauDeBord() {
   const jour = aujourdhuiBenin();
 
   const [chiffres, aVerifier, villes, categories, paie, tresoreries, retards] = await Promise.all([
-    une<{ inscrits: number; verifies: number; actifs: number; en_attente: number; semaine: number; clients: number; prospects: number; briefs: number; missions: number; en_cours: number; presence: number | null; rejet: number | null; incidents: number }>(
+    une<{ inscrits: number; verifies: number; actifs: number; en_attente: number; semaine: number; clients: number; prospects: number; briefs: number; missions: number; en_cours: number; presence: number | null; rejet: number | null; incidents: number; satisfaits: number; avis: number }>(
       `SELECT count(*)::int AS inscrits,
               count(*) FILTER (WHERE statut IN ('verifie', 'actif'))::int AS verifies,
               count(*) FILTER (WHERE statut = 'actif')::int AS actifs,
@@ -28,8 +30,11 @@ export default async function TableauDeBord() {
               (SELECT count(*) FROM mission WHERE statut IN ('selection', 'preparation', 'execution'))::int AS en_cours,
               (SELECT avg((presence <> 'absent')::int)::float FROM affectation WHERE presence IS NOT NULL AND role = 'titulaire') AS presence,
               (SELECT (count(*) FILTER (WHERE statut = 'rejetee'))::float / nullif(count(*) FILTER (WHERE statut <> 'en_attente'), 0) FROM preuve) AS rejet,
-              (SELECT count(*) FROM incident WHERE resolu_le IS NULL)::int AS incidents
+              (SELECT count(*) FROM incident WHERE resolu_le IS NULL)::int AS incidents,
+              (SELECT count(*) FROM mission WHERE satisfaction_note >= $1)::int AS satisfaits,
+              (SELECT count(*) FROM mission WHERE satisfaction_note IS NOT NULL)::int AS avis
          FROM intervenant`,
+      [SEUIL_SATISFAIT],
     ),
     requete<{ id: string; nom: string; prenoms: string; telephone: string; ville: string; cree_le: Date }>(
       `SELECT id, nom, prenoms, telephone, ville, cree_le FROM intervenant
@@ -66,7 +71,18 @@ export default async function TableauDeBord() {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Indicateur libelle="Taux de présence" valeur={c.presence === null ? "-" : `${Math.round(c.presence * 100)} %`} cible="95 % et plus" detail="titulaires pointés" />
-        <Indicateur libelle="Données rejetées" valeur={c.rejet === null ? "-" : `${Math.round(c.rejet * 1000) / 10} %`} cible="moins de 5 %" detail={`${c.incidents} incident(s) ouvert(s)`} />
+        <Indicateur libelle="Données rejetées" valeur={c.rejet === null ? "-" : pourcentage(c.rejet)} cible="moins de 5 %" detail={`${c.incidents} incident(s) ouvert(s)`} />
+        <Indicateur
+          libelle="Satisfaction clients"
+          valeur={c.avis ? `${Math.round((c.satisfaits / c.avis) * 100)} %` : '-'}
+          cible={`${Math.round(CIBLE_SATISFACTION * 100)} % et plus`}
+          detail={`${c.avis} avis recueilli${c.avis > 1 ? 's' : ''} (${SEUIL_SATISFAIT} ou 5 sur 5)`}
+          lien="/reporting"
+          alerte={c.avis > 0 && c.satisfaits / c.avis < CIBLE_SATISFACTION}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {paie && (
           <Indicateur
             libelle="Paiement des intervenants"

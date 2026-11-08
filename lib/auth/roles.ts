@@ -74,6 +74,7 @@ export const MENU: EntreeMenu[] = [
   { href: '/briefs', libelle: 'Briefs', droit: 'client:lire' },
   { href: '/missions', libelle: 'Missions', droit: 'mission:lire' },
   { href: '/finances', libelle: 'Finances', droit: 'finance:lire' },
+  { href: '/reporting', libelle: 'Reporting', droit: 'tableau:lire' },
   { href: '/journal', libelle: 'Journal', droit: 'journal:lire' },
   { href: '/comptes', libelle: 'Comptes', droit: 'compte:gerer' },
   { href: '/parametres/score', libelle: 'Paramètres', droit: 'parametre:gerer' },

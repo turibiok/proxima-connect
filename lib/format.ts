@@ -29,6 +29,11 @@ export function periode(debut: string | null, fin: string | null): string {
   return 'Dates à fixer';
 }
 
+/** 0.3333 -> « 33,3 % » (virgule decimale, espace insecable). */
+export function pourcentage(taux: number, decimales = 1): string {
+  return `${(taux * 100).toLocaleString('fr-FR', { maximumFractionDigits: decimales })} %`;
+}
+
 export function ilYa(d: Date | string): string {
   const jours = Math.floor((Date.now() - new Date(d).getTime()) / 86_400_000);
   if (jours <= 0) return 'aujourd’hui';

@@ -32,7 +32,7 @@ export const ETAPES: { code: Exclude<StatutMission, 'annulee'>; libelle: string;
   { code: 'execution', libelle: 'En cours d’exécution' },
   { code: 'preuves_collectees', libelle: 'Preuves collectées' },
   { code: 'controlee', libelle: 'Contrôlée' },
-  { code: 'rapport_transmis', libelle: 'Rapport transmis', module: '5.7 Reporting' },
+  { code: 'rapport_transmis', libelle: 'Rapport transmis' },
   { code: 'payee', libelle: 'Payée' },
 ];
 
@@ -52,6 +52,8 @@ export interface EtatMission {
   presencesManquantes: number;
   /** Etat des preuves et incidents (module 5.4). */
   bilan?: Bilan;
+  /** Le rapport a ete transmis au client (module 5.7). */
+  rapportTransmis?: boolean;
   /** Paiements et factures de la mission (module 5.6). */
   finances?: {
     /** Paiements d'intervenants a payer ou en litige. */
@@ -95,6 +97,9 @@ export function refusTransition(de: StatutMission, vers: StatutMission, e: EtatM
       const restes = restesAControler(e.bilan ?? { validees: 0, enAttente: 0, rejetees: 0, incidentsBloquants: 0 });
       return restes.length ? restes.join(' ') : null;
     }
+    case 'rapport_transmis':
+      // parcours, etape 13 : le rapport final est genere et transmis au client
+      return e.rapportTransmis ? null : 'Préparez le rapport et enregistrez sa transmission au client (page « Rapport client »).';
     case 'payee': {
       // parcours, etape 14 : les intervenants sont payes et la facture client est soldee
       const fi = e.finances ?? { paiementsOuverts: 0, factures: 0, nonSoldees: 0 };

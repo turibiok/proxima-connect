@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { exiger } from '@/lib/auth/session';
 import { requete } from '@/lib/db';
 import { LIBELLES_ACTIONS } from '@/lib/journal';
-import { date, dateHeure, periode } from '@/lib/format';
+import { date, dateHeure, periode, pourcentage } from '@/lib/format';
 import { formaterFCFA } from '@/lib/clients/regles';
 import { afficherTelephone, lienWhatsApp } from '@/lib/intervenants/regles';
 import { chargerEquipe, chargerMission } from '@/lib/missions/donnees';
@@ -80,7 +80,7 @@ export default async function Mission({ params }: { params: Promise<{ id: string
   const composition = ['selection', 'preparation', 'execution'].includes(statut);
   const pointage = ['execution', 'preuves_collectees'].includes(statut);
   const { suivante, precedente } = etapesVoisines(statut);
-  const etatMission = { engages: e.engages.length, requis: m.nb_profils_requis, briefing: !!m.briefing_le, presencesManquantes: e.presencesManquantes, bilan, finances: etatFin };
+  const etatMission = { engages: e.engages.length, requis: m.nb_profils_requis, briefing: !!m.briefing_le, presencesManquantes: e.presencesManquantes, bilan, rapportTransmis: !!m.rapport_transmis_le, finances: etatFin };
   const blocage = suivante ? refusTransition(statut, suivante, etatMission) : null;
   const eco = economie(m.budget_fcfa, m.remuneration_agent_fcfa, m.nb_profils_requis);
 
@@ -142,6 +142,9 @@ export default async function Mission({ params }: { params: Promise<{ id: string
         <div className="flex gap-2">
           {modifiable && <Link href={`/missions/${id}/modifier`} className="btn">Modifier</Link>}
           {modifiable && composition && <Link href={`/missions/${id}/selection`} className="btn-primaire">Sélectionner des profils</Link>}
+          {['preuves_collectees', 'controlee', 'rapport_transmis', 'payee'].includes(statut) && (
+            <Link href={`/missions/${id}/rapport`} className="btn">Rapport client</Link>
+          )}
           {['preuves_collectees', 'controlee', 'rapport_transmis', 'payee'].includes(statut) && (
             <Link href={`/missions/${id}/evaluations`} className={ctx.peut('mission:modifier') ? 'btn-primaire' : 'btn'}>
               {ctx.peut('mission:modifier') ? 'Évaluer l’équipe' : 'Évaluations'}
@@ -247,7 +250,7 @@ export default async function Mission({ params }: { params: Promise<{ id: string
               </dl>
               {tauxRejet(bilan) !== null && (
                 <p className={`mt-2 text-xs ${tauxRejet(bilan)! >= 0.05 ? 'text-alerte' : 'text-encre-douce'}`}>
-                  Données rejetées : {Math.round(tauxRejet(bilan)! * 1000) / 10} % (cible : moins de 5 %)
+                  Données rejetées : {pourcentage(tauxRejet(bilan)!)} (cible : moins de 5 %)
                 </p>
               )}
             </section>
@@ -386,6 +389,7 @@ export default async function Mission({ params }: { params: Promise<{ id: string
                     {h.action === 'preuve_ajout' && h.details?.type && ` (${h.details.type.replace('_', '-')})`}
                     {h.action === 'paiements_generes' && ` (${h.details?.nombre}, ${formaterFCFA(h.details?.total)})`}
                     {h.action === 'paiement_verse' && h.details?.montant != null && ` (${formaterFCFA(h.details.montant)})`}
+                    {h.action === 'satisfaction_client' && ` : ${h.details?.note}/5`}
                   </div>
                   <div className="text-xs text-encre-douce">
                     {dateHeure(h.cree_le)} · {h.auteur ?? '-'}

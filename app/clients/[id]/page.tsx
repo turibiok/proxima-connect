@@ -75,7 +75,7 @@ export default async function FicheClient({ params }: { params: Promise<{ id: st
             <PuceCommerciale statut={c.statut_commercial} />
           </div>
           <p className="mt-1 text-sm text-encre-douce">
-            {[c.secteur, c.ville, c.ifu && `IFU ${c.ifu}`].filter(Boolean).join(' · ') || 'Secteur non renseigné'} · client depuis le {date(c.cree_le)}
+            {[c.secteur, c.ville, c.departement, c.ifu && `IFU ${c.ifu}`].filter(Boolean).join(' · ') || 'Secteur non renseigné'} · client depuis le {date(c.cree_le)}
           </p>
         </div>
         {modifiable && (

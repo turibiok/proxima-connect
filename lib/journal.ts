@@ -87,6 +87,7 @@ export const LIBELLES_ACTIONS: Record<string, string> = {
   client_compte_creation: 'Accès client créé',
   client_compte_reinitialisation: 'Accès client réinitialisé',
   client_compte_etat: 'Accès client activé ou désactivé',
+  territoire_reglage: 'Territoire réglé',
   compte_creation: 'Création de compte',
   compte_reinitialisation: 'Mot de passe réinitialisé par un administrateur',
   compte_etat: 'Activation / désactivation de compte',

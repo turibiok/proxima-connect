@@ -42,8 +42,9 @@ export default async function TableauDeBord() {
         WHERE statut = 'en_attente' ORDER BY cree_le LIMIT 8`,
     ),
     requete<{ ville: string; n: number }>(
-      `SELECT initcap(ville) AS ville, count(*)::int AS n FROM intervenant
-        WHERE statut NOT IN ('inactif') GROUP BY initcap(ville) ORDER BY n DESC LIMIT 8`,
+      // phase 5 : vivier par departement (rattachement automatique de la ville)
+      `SELECT coalesce(departement, 'Ville non reconnue') AS ville, count(*)::int AS n FROM intervenant
+        WHERE statut NOT IN ('inactif') GROUP BY departement ORDER BY n DESC LIMIT 12`,
     ),
     requete<{ code: string; n: number }>(
       `SELECT c AS code, count(*)::int AS n FROM intervenant, unnest(categories_missions) c
@@ -160,7 +161,10 @@ export default async function TableauDeBord() {
         </section>
 
         <section className="carte p-5">
-          <h2 className="mb-3 font-bold">Vivier par ville</h2>
+          <div className="mb-3 flex items-baseline justify-between">
+            <h2 className="font-bold">Vivier par département</h2>
+            <Link href="/reporting/territoires" className="text-sm text-marque hover:underline">Territoires →</Link>
+          </div>
           <Barres donnees={villes.map((v) => ({ libelle: v.ville, n: v.n }))} max={maxVille} />
         </section>
       </div>

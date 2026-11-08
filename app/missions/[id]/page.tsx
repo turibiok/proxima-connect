@@ -398,6 +398,7 @@ export default async function Mission({ params }: { params: Promise<{ id: string
                   ['Quand', periode(m.date_debut, m.date_fin)],
                   ['Horaires', m.horaires],
                   ['Zone', m.zone],
+                  ['Département', m.departement],
                   ['Rendez-vous', m.lieu],
                   ['Compétences', m.competences.join(', ')],
                   ['Score minimum', m.score_minimum !== null ? String(m.score_minimum) : null],

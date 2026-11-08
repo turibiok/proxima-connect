@@ -4,6 +4,7 @@ import { requete } from '@/lib/db';
 import { clauseRecherche, lireFiltres } from '@/lib/intervenants/recherche';
 import { afficherTelephone } from '@/lib/intervenants/regles';
 import { CATEGORIES_MISSIONS, JOURS, STATUTS_PROFIL, VILLES, libelleCategorie, type StatutProfil } from '@/lib/referentiel';
+import { DEPARTEMENTS } from '@/lib/geographie';
 import { PuceStatut } from '@/components/Statut';
 
 export const metadata = { title: 'Intervenants' };
@@ -18,6 +19,7 @@ interface Ligne {
   telephone: string;
   ville: string;
   quartier: string | null;
+  departement: string | null;
   categories_missions: string[];
   jours_disponibles: string[];
   statut: StatutProfil;
@@ -35,7 +37,7 @@ export default async function Intervenants({ searchParams }: { searchParams: Pro
 
   const [lignes, [{ total }], parStatut] = await Promise.all([
     requete<Ligne>(
-      `SELECT i.id, i.reference, i.nom, i.prenoms, i.telephone, i.ville, i.quartier, i.categories_missions,
+      `SELECT i.id, i.reference, i.nom, i.prenoms, i.telephone, i.ville, i.quartier, i.departement, i.categories_missions,
               i.jours_disponibles, i.statut, i.score, i.cree_le,
               (SELECT count(*) FROM affectation a WHERE a.intervenant_id = i.id AND a.presence IN ('present', 'retard'))::int AS missions
          FROM intervenant i ${where}
@@ -86,6 +88,11 @@ export default async function Intervenants({ searchParams }: { searchParams: Pro
       <form className="carte grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
         <input name="q" defaultValue={filtres.q} placeholder="Nom, téléphone, référence…" className="champ sm:col-span-2" />
         <input name="ville" list="villes" defaultValue={filtres.ville} placeholder="Ville" className="champ" />
+        <select name="departement" defaultValue={filtres.departement ?? ''} aria-label="Département" className="champ">
+          <option value="">Tous les départements</option>
+          {DEPARTEMENTS.map((d) => <option key={d.nom} value={d.nom}>{d.nom}</option>)}
+          <option value="inconnu">Ville non reconnue</option>
+        </select>
         <datalist id="villes">{VILLES.map((v) => <option key={v} value={v} />)}</datalist>
         <input name="zone" defaultValue={filtres.zone} placeholder="Quartier / zone" className="champ" />
         <select name="categorie" defaultValue={filtres.categorie ?? ''} className="champ">
@@ -135,6 +142,7 @@ export default async function Intervenants({ searchParams }: { searchParams: Pro
                   <td className="px-4 py-2.5">
                     {l.ville}
                     {l.quartier && <span className="text-encre-douce"> · {l.quartier}</span>}
+                    <div className={`text-xs ${l.departement ? 'text-encre-douce' : 'text-alerte'}`}>{l.departement ?? 'ville non reconnue'}</div>
                   </td>
                   <td className="px-4 py-2.5 text-xs text-encre-douce">
                     {l.categories_missions.map(libelleCategorie).join(', ')}

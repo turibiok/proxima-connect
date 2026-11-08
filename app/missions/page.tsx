@@ -5,6 +5,7 @@ import { periode } from '@/lib/format';
 import { ETAPES, type StatutMission } from '@/lib/missions/regles';
 import { libelleCategorie } from '@/lib/referentiel';
 import { PuceMission } from '@/components/Statut';
+import { DEPARTEMENTS } from '@/lib/geographie';
 
 export const metadata = { title: 'Missions' };
 
@@ -17,9 +18,12 @@ const FILTRES: { code: string; libelle: string; statuts: StatutMission[] }[] = [
   { code: 'annulees', libelle: 'Annulées', statuts: ['annulee'] },
 ];
 
-export default async function Missions({ searchParams }: { searchParams: Promise<{ filtre?: string }> }) {
+export default async function Missions({ searchParams }: { searchParams: Promise<{ filtre?: string; departement?: string }> }) {
   const ctx = await exiger('mission:lire');
-  const { filtre = 'en_cours' } = await searchParams;
+  const { filtre = 'en_cours', departement: dep } = await searchParams;
+  // phase 5 : filtre par departement (rattachement automatique de la zone)
+  const departement = DEPARTEMENTS.some((d) => d.nom === dep) ? dep! : null;
+  const suffixe = departement ? `&departement=${encodeURIComponent(departement)}` : '';
   const actif = FILTRES.find((f) => f.code === filtre) ?? FILTRES[0];
 
   const [missions, comptes] = await Promise.all([
@@ -44,12 +48,12 @@ export default async function Missions({ searchParams }: { searchParams: Promise
                   AND NOT EXISTS (SELECT 1 FROM affectation r WHERE r.remplace_affectation_id = a.id))::int AS engages,
               (SELECT count(*) FROM affectation a WHERE a.mission_id = m.id AND a.reponse = 'en_attente' AND a.proposee_le IS NOT NULL)::int AS en_attente
          FROM mission m JOIN client c ON c.id = m.client_id
-        WHERE m.statut = ANY ($1)
+        WHERE m.statut = ANY ($1) AND ($2::text IS NULL OR m.departement = $2)
         ORDER BY m.date_debut NULLS LAST, m.cree_le DESC
         LIMIT 200`,
-      [actif.statuts],
+      [actif.statuts, departement],
     ),
-    requete<{ statut: StatutMission; n: number }>('SELECT statut, count(*)::int AS n FROM mission GROUP BY statut'),
+    requete<{ statut: StatutMission; n: number }>('SELECT statut, count(*)::int AS n FROM mission WHERE ($1::text IS NULL OR departement = $1) GROUP BY statut', [departement]),
   ]);
   const total = (statuts: StatutMission[]) => comptes.filter((c) => statuts.includes(c.statut)).reduce((t, c) => t + c.n, 0);
 
@@ -72,12 +76,20 @@ export default async function Missions({ searchParams }: { searchParams: Promise
         {FILTRES.map((f) => (
           <Link
             key={f.code}
-            href={`/missions?filtre=${f.code}`}
+            href={`/missions?filtre=${f.code}${suffixe}`}
             className={`rounded-full border px-3 py-1 ${actif.code === f.code ? 'border-marque bg-marque-pale font-semibold' : 'border-trait bg-white'}`}
           >
             {f.libelle} <span className="text-encre-douce">{total(f.statuts)}</span>
           </Link>
         ))}
+        <form className="ml-auto">
+          <input type="hidden" name="filtre" value={actif.code} />
+          <select name="departement" defaultValue={departement ?? ''} aria-label="Département" className="champ w-auto py-1 text-sm">
+            <option value="">Tous les départements</option>
+            {DEPARTEMENTS.map((d) => <option key={d.nom} value={d.nom}>{d.nom}</option>)}
+          </select>
+          <button className="btn ml-1 px-3 py-1 text-sm">Filtrer</button>
+        </form>
       </div>
 
       {missions.length === 0 ? (

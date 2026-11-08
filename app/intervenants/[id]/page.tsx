@@ -132,6 +132,7 @@ export default async function FicheIntervenant({ params }: { params: Promise<{ i
                 ['WhatsApp', p.whatsapp ? afficherTelephone(p.whatsapp) : 'Même numéro'],
                 ['E-mail', p.email],
                 ['Ville', [p.ville, p.quartier].filter(Boolean).join(' · ')],
+                ['Département', p.departement ? `${p.departement}${p.commune && p.commune !== p.ville ? ` (commune de ${p.commune})` : ''}` : 'Ville non reconnue : vérifiez l’orthographe'],
                 ['Zones acceptées', p.zones.join(', ')],
                 ['Déplacement', p.deplacements.map((d: string) => libelle(DEPLACEMENTS, d)).join(', ')],
               ]}

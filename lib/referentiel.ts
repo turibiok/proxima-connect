@@ -6,8 +6,10 @@
  * (cles) sont stockes en base ; les libelles ne servent qu'a l'affichage et
  * peuvent changer sans migration.
  *
- * Module pur, sans import : utilisable sous Node par les tests.
+ * Module pur : utilisable sous Node par les tests.
  */
+
+import { COMMUNES } from './geographie.ts';
 
 export type Option = { code: string; libelle: string };
 
@@ -90,23 +92,13 @@ export const CATEGORIES_MISSIONS: (Option & { types: string[] })[] = [
   },
 ];
 
-/** Principales villes ; la saisie reste libre pour les autres localites. */
-export const VILLES = [
-  'Cotonou',
-  'Abomey-Calavi',
-  'Porto-Novo',
-  'Sèmè-Podji',
-  'Ouidah',
-  'Allada',
-  'Lokossa',
-  'Abomey',
-  'Bohicon',
-  'Parakou',
-  'Djougou',
-  'Natitingou',
-  'Kandi',
-  'Malanville',
-];
+/**
+ * Suggestions de saisie de la ville : les 77 communes du Benin (phase 5),
+ * principales villes en tete. La saisie reste libre : la commune et le
+ * departement sont reconnus par la base (migration 013).
+ */
+const PRINCIPALES = ['Cotonou', 'Abomey-Calavi', 'Porto-Novo', 'Sèmè-Kpodji', 'Parakou', 'Bohicon', 'Abomey', 'Ouidah', 'Lokossa', 'Djougou', 'Natitingou', 'Kandi'];
+export const VILLES = [...PRINCIPALES, ...COMMUNES.filter((c) => !PRINCIPALES.includes(c))];
 
 export const SITUATIONS: Option[] = [
   { code: 'etudiant', libelle: 'Étudiant(e)' },

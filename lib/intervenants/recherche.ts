@@ -10,6 +10,8 @@ export interface Filtres {
   q?: string;
   statut?: string;
   ville?: string;
+  /** nom du departement, ou « inconnu » : ville non reconnue par le referentiel */
+  departement?: string;
   zone?: string;
   competence?: string;
   categorie?: string;
@@ -17,7 +19,7 @@ export interface Filtres {
   score_min?: string;
 }
 
-export const CLES_FILTRES: (keyof Filtres)[] = ['q', 'statut', 'ville', 'zone', 'competence', 'categorie', 'jour', 'score_min'];
+export const CLES_FILTRES: (keyof Filtres)[] = ['q', 'statut', 'ville', 'departement', 'zone', 'competence', 'categorie', 'jour', 'score_min'];
 
 export function lireFiltres(sp: Record<string, string | string[] | undefined>): Filtres {
   const f: Filtres = {};
@@ -53,6 +55,7 @@ export function clauseRecherche(f: Filtres): { where: string; params: unknown[] 
   }
   if (f.statut) conditions.push(`i.statut = ${p(f.statut)}`);
   if (f.ville) conditions.push(`lower(i.ville) = ${p(f.ville.toLowerCase())}`);
+  if (f.departement) conditions.push(f.departement === 'inconnu' ? 'i.departement IS NULL' : `i.departement = ${p(f.departement)}`);
   if (f.zone) {
     const z = p(`%${sansAccent(f.zone)}%`);
     conditions.push(

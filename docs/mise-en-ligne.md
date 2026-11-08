@@ -323,7 +323,22 @@ Si une application de magasin devenait nécessaire (notifications poussées sur 
 
 ---
 
-## 12. Coûts récurrents indicatifs
+## 12. Phase 5 : extension géographique
+
+Branche `phase-5` (après la Phase 4). Migration `013_geographie.sql`.
+
+- **Référentiel** des 12 départements et 77 communes du Bénin, dans la base et dans le programme (un test vérifie que les deux listes sont identiques).
+- **Rattachement automatique** : la base reconnaît la commune dans la ville saisie (accents, variantes comme « Sèmè-Podji » ou « Calavi », grands quartiers comme « Godomey » ou « Akpakpa ») et en déduit le département, pour chaque profil, client et mission. La migration rattache aussi les données existantes.
+- **Saisie** : la ville propose les 77 communes, en restant libre.
+- **Filtres par département** : listes des intervenants (avec « ville non reconnue », pour corriger les saisies) et des missions.
+- **Page Reporting → Territoires** : vivier mobilisable, demande et clients par département, avec des signaux (demande sans vivier, missions hors territoire ouvert, vivier insuffisant, territoire prêt à ouvrir). L’administrateur y règle le statut de chaque département (ouvert, en préparation, fermé) et son objectif de profils.
+- **Tableau de bord** : vivier par département.
+
+Point de départ retenu (à confirmer) : Littoral, Atlantique et Ouémé ouverts (Grand Nokoué), objectif de 100 profils mobilisables chacun ; les autres départements fermés.
+
+---
+
+## 13. Coûts récurrents indicatifs
 
 Tarifs publics à confirmer au moment de la souscription.
 
